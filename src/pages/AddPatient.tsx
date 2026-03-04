@@ -149,7 +149,7 @@ export default function AddPatient() {
             <CardHeader><CardTitle className="text-lg">{t("add.patientInfo")}</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2"><Label>{t("add.fullName")} *</Label><Input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.dob")} *</Label><Input type="date" value={form.date_of_birth} onChange={(e) => set("date_of_birth", e.target.value)} required /></div>
+              <div className="space-y-2"><Label>{t("add.dob")} *</Label><DateInputSeparate value={form.date_of_birth} onChange={(v) => set("date_of_birth", v)} yearRange={[1940, new Date().getFullYear()]} /></div>
               <div className="space-y-2">
                 <Label>{t("add.gender")} *</Label>
                 <Select value={form.gender} onValueChange={(v) => set("gender", v)}>
