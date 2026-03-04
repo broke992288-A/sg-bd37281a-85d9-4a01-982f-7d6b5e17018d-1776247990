@@ -168,7 +168,7 @@ export default function AddPatient() {
             <CardHeader><CardTitle className="text-lg">{t("add.transplantDetails")}</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2"><Label>{t("add.transplantNumber")} *</Label><Input type="number" min={1} value={form.transplant_number} onChange={(e) => set("transplant_number", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.transplantDate")} *</Label><Input type="date" value={form.transplant_date} onChange={(e) => set("transplant_date", e.target.value)} required /></div>
+              <div className="space-y-2"><Label>{t("add.transplantDate")} *</Label><DateInputSeparate value={form.transplant_date} onChange={(v) => set("transplant_date", v)} yearRange={[1990, new Date().getFullYear()]} /></div>
               {organ === "liver" && (
                 <div className="space-y-2">
                   <Label>{t("add.rejectionType")}</Label>
