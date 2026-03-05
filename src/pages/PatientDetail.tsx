@@ -100,6 +100,7 @@ export default function PatientDetail() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         </div>
 
         {patient.risk_level === "high" && (
