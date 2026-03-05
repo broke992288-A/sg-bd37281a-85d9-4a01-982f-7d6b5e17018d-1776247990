@@ -77,7 +77,9 @@ export default function PatientDetail() {
             <span className="text-lg font-bold">{patient.full_name}</span>
             <Badge className={riskColor(patient.risk_level)}>{patient.risk_level.toUpperCase()}</Badge>
           </div>
-          <AlertDialog>
+          <div className="flex items-center gap-2">
+            <EditPatientDialog patient={patient} onUpdated={loadData} />
+            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-1" />{t("common.delete") || "Ўчириш"}</Button>
             </AlertDialogTrigger>
