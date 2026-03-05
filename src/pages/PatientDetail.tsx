@@ -92,8 +92,6 @@ export default function PatientDetail() {
                 <AlertDialogCancel>{t("common.cancel") || "Бекор қилиш"}</AlertDialogCancel>
                 <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={async () => {
                   try {
-                    await supabase.from("lab_results").delete().eq("patient_id", patient.id);
-                    await supabase.from("patient_events").delete().eq("patient_id", patient.id);
                     const { error } = await supabase.from("patients").delete().eq("id", patient.id);
                     if (error) throw error;
                     toast({ title: t("detail.patientDeleted") || "Бемор ўчирилди" });
