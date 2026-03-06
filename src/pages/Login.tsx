@@ -9,7 +9,7 @@ import { Heart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import LanguageSelector from "@/components/features/LanguageSelector";
-import { supabase } from "@/integrations/supabase/client";
+import { resetPasswordForEmail } from "@/services/authService";
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
