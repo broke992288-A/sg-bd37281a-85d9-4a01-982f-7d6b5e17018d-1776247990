@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { insertLabResult } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
+import { logAudit } from "@/services/auditService";
 
 const LAB_FIELDS = [
   { key: "hb", label: "HB (Hemoglobin)", unit: "g/dL" },
