@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import LanguageSelector from "@/components/features/LanguageSelector";
 import { resetPasswordForEmail } from "@/services/authService";
+import { logAudit } from "@/services/auditService";
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
