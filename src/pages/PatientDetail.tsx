@@ -11,10 +11,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import AddLabDialog from "@/components/features/AddLabDialog";
 import LabHistoryTable from "@/components/features/LabHistoryTable";
 import EditPatientDialog from "@/components/features/EditPatientDialog";
+import RiskScoreCard from "@/components/features/RiskScoreCard";
+import PatientAlertsCard from "@/components/features/PatientAlertsCard";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { usePatientDetail } from "@/hooks/usePatientDetail";
+import { useRiskSnapshots } from "@/hooks/useRiskSnapshots";
 import { updatePatient, deletePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
 import { riskColorClass } from "@/utils/risk";
