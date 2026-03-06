@@ -77,11 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setUserRole = async (newRole: AppRole) => {
     if (!user) throw new Error("Not authenticated");
-    const { error } = await supabase.from("user_roles").upsert(
-      { user_id: user.id, role: newRole },
-      { onConflict: "user_id,role" }
-    );
-    if (error) throw error;
+    await upsertUserRole(user.id, newRole);
     setRole(newRole);
   };
 

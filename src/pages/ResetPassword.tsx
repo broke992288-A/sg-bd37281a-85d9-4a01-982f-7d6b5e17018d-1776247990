@@ -23,8 +23,7 @@ export default function ResetPassword() {
     if (password !== confirmPassword) { toast({ title: t("common.error"), description: t("login.passwordMismatch"), variant: "destructive" }); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      await updateUserPassword(password);
       toast({ title: t("login.passwordUpdated"), description: t("login.passwordUpdatedDesc") });
       navigate("/login");
     } catch (err: any) { toast({ title: t("common.error"), description: err.message, variant: "destructive" }); }
