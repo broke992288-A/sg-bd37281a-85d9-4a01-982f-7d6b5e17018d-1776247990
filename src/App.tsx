@@ -72,6 +72,7 @@ function RealtimeProvider({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <LanguageProvider>
