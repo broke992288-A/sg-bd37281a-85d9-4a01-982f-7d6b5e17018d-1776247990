@@ -53,6 +53,11 @@ function DoctorOrAdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RealtimeProvider({ children }: { children: React.ReactNode }) {
+  useRealtimeInvalidation();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -61,6 +66,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <RealtimeProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/reset-password" element={<ResetPassword />} />
