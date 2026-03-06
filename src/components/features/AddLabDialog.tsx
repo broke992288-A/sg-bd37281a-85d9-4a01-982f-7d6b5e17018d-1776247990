@@ -19,7 +19,7 @@ interface AddLabDialogProps {
   patientData?: { transplant_number?: number | null; dialysis_history?: boolean | null };
 }
 
-export default function AddLabDialog({ patientId, organType, onLabAdded }: AddLabDialogProps) {
+export default function AddLabDialog({ patientId, organType, onLabAdded, patientData }: AddLabDialogProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
