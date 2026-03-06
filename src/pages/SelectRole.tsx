@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { AppRole } from "@/types/roles";
-import { supabase } from "@/integrations/supabase/client";
+import { registerPatientSelf } from "@/services/authService";
 
 export default function SelectRole() {
   const { user, role, setUserRole, loading: authLoading } = useAuth();
