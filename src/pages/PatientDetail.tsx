@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import { useRiskSnapshots } from "@/hooks/useRiskSnapshots";
 import { updatePatient, deletePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
 import { riskColorClass } from "@/utils/risk";
+import { logAudit } from "@/services/auditService";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,11 @@ export default function PatientDetail() {
   const { data: riskSnapshots = [] } = useRiskSnapshots(id);
   const latestRisk = riskSnapshots[0] ?? null;
   const prevRisk = riskSnapshots[1] ?? null;
+
+  // Audit: doctor viewing patient
+  useEffect(() => {
+    if (id) logAudit({ action: "doctor_view_patient", entityType: "patient", entityId: id });
+  }, [id]);
 
   const [overrideLevel, setOverrideLevel] = useState("");
   const [overrideReason, setOverrideReason] = useState("");

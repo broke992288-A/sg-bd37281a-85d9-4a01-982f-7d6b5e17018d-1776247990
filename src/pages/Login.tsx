@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import LanguageSelector from "@/components/features/LanguageSelector";
 import { resetPasswordForEmail } from "@/services/authService";
+import { logAudit } from "@/services/auditService";
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -37,6 +38,7 @@ export default function Login() {
         toast({ title: t("login.accountCreated"), description: t("login.checkEmail") });
       } else {
         await signIn(email, password);
+        logAudit({ action: "patient_login", metadata: { email } });
         navigate("/select-role");
       }
     } catch (err: any) {
