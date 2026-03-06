@@ -21,6 +21,7 @@ import { useRiskSnapshots } from "@/hooks/useRiskSnapshots";
 import { updatePatient, deletePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
 import { riskColorClass } from "@/utils/risk";
+import { logAudit } from "@/services/auditService";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
