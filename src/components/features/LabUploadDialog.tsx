@@ -48,6 +48,8 @@ const LAB_FIELDS = [
 
 interface Props {
   patientId: string;
+  organType?: string;
+  patientData?: { transplant_number?: number | null; dialysis_history?: boolean | null };
   onLabAdded: () => void;
 }
 
