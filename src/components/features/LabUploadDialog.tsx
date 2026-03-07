@@ -10,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { insertLabResult } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
 import { logAudit } from "@/services/auditService";
+import { computeRiskScore, insertRiskSnapshot } from "@/services/riskSnapshotService";
+import { insertPatientAlert } from "@/services/patientAlertService";
+import { updatePatient } from "@/services/patientService";
 import { preprocessLabImage } from "@/utils/imagePreprocess";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +51,8 @@ const LAB_FIELDS = [
 
 interface Props {
   patientId: string;
+  organType?: string;
+  patientData?: { transplant_number?: number | null; dialysis_history?: boolean | null };
   onLabAdded: () => void;
 }
 
@@ -177,7 +182,7 @@ function DateGroupValues({
   );
 }
 
-export default function LabUploadDialog({ patientId, onLabAdded }: Props) {
+export default function LabUploadDialog({ patientId, organType, patientData, onLabAdded }: Props) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("upload");
   const [saving, setSaving] = useState(false);
@@ -308,9 +313,43 @@ export default function LabUploadDialog({ patientId, onLabAdded }: Props) {
   const handleConfirm = async () => {
     setSaving(true);
     try {
-      let totalFilled = 0;
-
+      // --- Date unification: merge groups with the same date ---
+      const mergedMap = new Map<string, DateGroup>();
       for (const group of dateGroups) {
+        const key = group.date || "unknown";
+        if (mergedMap.has(key)) {
+          const existing = mergedMap.get(key)!;
+          // Merge values: prefer non-empty values, keep higher confidence
+          for (const field of LAB_FIELDS) {
+            const newVal = group.values[field.key];
+            const existingVal = existing.values[field.key];
+            if (newVal && newVal !== "" && (!existingVal || existingVal === "")) {
+              existing.values[field.key] = newVal;
+              existing.confidence[field.key] = group.confidence[field.key] ?? 100;
+              existing.originalText[field.key] = group.originalText[field.key] ?? "";
+            } else if (newVal && newVal !== "" && existingVal && existingVal !== "") {
+              // Both have values - keep the one with higher confidence
+              const newConf = group.confidence[field.key] ?? 100;
+              const existingConf = existing.confidence[field.key] ?? 100;
+              if (newConf > existingConf) {
+                existing.values[field.key] = newVal;
+                existing.confidence[field.key] = newConf;
+                existing.originalText[field.key] = group.originalText[field.key] ?? "";
+              }
+            }
+          }
+        } else {
+          mergedMap.set(key, { ...group, values: { ...group.values }, confidence: { ...group.confidence }, originalText: { ...group.originalText } });
+        }
+      }
+      const mergedGroups = Array.from(mergedMap.values());
+
+      let totalFilled = 0;
+      let lastRiskLevel = "";
+      let lastRiskScore = 0;
+      let lastFlags: string[] = [];
+
+      for (const group of mergedGroups) {
         const labData: Record<string, any> = { patient_id: patientId };
         if (reportUrl) labData.report_file_url = reportUrl;
 
@@ -328,13 +367,71 @@ export default function LabUploadDialog({ patientId, onLabAdded }: Props) {
         if (filledCount > 0) {
           await insertLabResult(labData as Record<string, any> & { patient_id: string });
           totalFilled += filledCount;
+
+          // --- Compute risk score for each saved lab ---
+          if (organType) {
+            try {
+              const fakeLabResult = {
+                ...labData,
+                id: "",
+                recorded_at: labData.recorded_at ?? new Date().toISOString(),
+                created_at: new Date().toISOString(),
+              } as any;
+              const { score, level, flags } = computeRiskScore(organType, fakeLabResult, patientData ?? {});
+              lastRiskLevel = level;
+              lastRiskScore = score;
+              lastFlags = flags;
+
+              const snapshot = await insertRiskSnapshot({
+                patient_id: patientId,
+                score,
+                risk_level: level,
+                creatinine: labData.creatinine ?? null,
+                alt: labData.alt ?? null,
+                ast: labData.ast ?? null,
+                total_bilirubin: labData.total_bilirubin ?? null,
+                tacrolimus_level: labData.tacrolimus_level ?? null,
+                details: { flags },
+              });
+
+              // Create alert if risk is high or medium
+              if (level === "high") {
+                await insertPatientAlert({
+                  patient_id: patientId,
+                  risk_snapshot_id: snapshot?.id ?? null,
+                  severity: "critical",
+                  title: `Юқори хавф аниқланди (балл: ${score})`,
+                  message: flags.join("; "),
+                });
+              } else if (level === "medium") {
+                await insertPatientAlert({
+                  patient_id: patientId,
+                  risk_snapshot_id: snapshot?.id ?? null,
+                  severity: "warning",
+                  title: `Ўртача хавф аниқланди (балл: ${score})`,
+                  message: flags.join("; "),
+                });
+              }
+            } catch (riskErr) {
+              console.error("Risk calculation error:", riskErr);
+            }
+          }
         }
       }
 
-      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `Lab report uploaded via OCR (${dateGroups.length} date(s))` });
-      logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: dateGroups.length, totalFilled } });
+      // Update patient risk level with the latest computed risk
+      if (lastRiskLevel && organType) {
+        try {
+          await updatePatient(patientId, { risk_level: lastRiskLevel });
+        } catch (e) {
+          console.error("Failed to update patient risk level:", e);
+        }
+      }
+
+      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `Lab report uploaded via OCR (${mergedGroups.length} date(s))` });
+      logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: mergedGroups.length, totalFilled } });
       
-      toast({ title: `${dateGroups.length} ${t("upload.resultsSaved")}` });
+      toast({ title: `${mergedGroups.length} ${t("upload.resultsSaved")}` });
       reset();
       setOpen(false);
       onLabAdded();

@@ -32,6 +32,8 @@ export default function PatientProfile() {
     queryClient.invalidateQueries({ queryKey: ["patient-labs", patient?.id] });
     queryClient.invalidateQueries({ queryKey: ["patient-events", patient?.id] });
     queryClient.invalidateQueries({ queryKey: ["risk-snapshots", patient?.id] });
+    queryClient.invalidateQueries({ queryKey: ["risk-snapshot-latest", patient?.id] });
+    queryClient.invalidateQueries({ queryKey: ["linked-patient"] });
   };
 
   if (isLoading) return <DashboardLayout><div className="flex items-center justify-center py-20 text-muted-foreground">{t("common.loading")}</div></DashboardLayout>;
@@ -62,7 +64,7 @@ export default function PatientProfile() {
               </div>
             </div>
           </div>
-          <LabUploadDialog patientId={patient.id} onLabAdded={invalidate} />
+          <LabUploadDialog patientId={patient.id} organType={patient.organ_type} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} onLabAdded={invalidate} />
         </div>
 
         {/* Tabs */}
