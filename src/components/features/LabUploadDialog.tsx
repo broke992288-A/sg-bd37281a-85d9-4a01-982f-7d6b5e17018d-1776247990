@@ -361,25 +361,17 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
         }
 
         if (filledCount > 0) {
-          await insertLabResult(labData as Record<string, any> & { patient_id: string });
+          const savedLab = await insertLabResult(labData as Record<string, any> & { patient_id: string });
           totalFilled += filledCount;
 
           // --- Compute risk score for each saved lab ---
           if (organType) {
             try {
-              const fakeLabResult = {
-                ...labData,
-                id: "",
-                recorded_at: labData.recorded_at ?? new Date().toISOString(),
-                created_at: new Date().toISOString(),
-              } as any;
-              const { score, level, flags } = computeRiskScore(organType, fakeLabResult, patientData ?? {});
-              lastRiskLevel = level;
-              lastRiskScore = score;
-              lastFlags = flags;
+              const { score, level, flags } = computeRiskScore(organType, savedLab as any, patientData ?? {});
 
               const snapshot = await insertRiskSnapshot({
                 patient_id: patientId,
+                lab_result_id: savedLab.id,
                 score,
                 risk_level: level,
                 creatinine: labData.creatinine ?? null,
