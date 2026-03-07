@@ -28,14 +28,14 @@ export async function fetchPatientById(id: string) {
   return data as Patient;
 }
 
-export async function fetchLinkedPatient(userId: string) {
+export async function fetchLinkedPatient(userId: string): Promise<Patient | null> {
   const { data, error } = await supabase
     .from("patients")
     .select("*")
     .eq("linked_user_id", userId)
     .limit(1);
   if (error) throw error;
-  return data?.[0] as Patient | undefined;
+  return (data?.[0] ?? null) as Patient | null;
 }
 
 export async function updatePatient(id: string, updates: Partial<Patient>) {
