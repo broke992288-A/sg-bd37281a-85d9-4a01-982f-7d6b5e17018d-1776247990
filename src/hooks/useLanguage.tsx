@@ -288,6 +288,8 @@ const translations: Record<Language, Record<string, string>> = {
     "alerts.unread": "Unread",
     "alerts.resolved": "Resolved",
     "alerts.view": "View",
+    "alerts.noAlerts": "No alerts",
+    "alerts.markRead": "Mark read",
     "alerts.criticalLabResult": "Critical Lab Result",
     "alerts.medicationStockCritical": "Medication Stock Critical",
     "alerts.missedCheckin": "Missed Medication Check-in",
