@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, Users, AlertTriangle, Activity, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, UserPlus, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
