@@ -130,7 +130,7 @@ export default function PatientDetail() {
               <FlaskConical className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">{t("detail.latestLabs")}</CardTitle>
             </div>
-            <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} />
+            <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date }} />
           </CardHeader>
           <CardContent>
             {latestLab ? (
