@@ -275,6 +275,8 @@ const translations: Record<Language, Record<string, string>> = {
     "reports.departmentUtilization": "Department Utilization",
     "reports.availableReports": "Available Reports",
     "reports.generateNew": "Generate New",
+    "reports.downloaded": "Report downloaded",
+    "reports.generated": "Report generated",
     "reports.monthlyPatientRegistry": "Monthly Patient Registry",
     "reports.quarterlyTransplantStats": "Quarterly Transplant Stats",
     "reports.medicationUsageReport": "Medication Usage Report",
