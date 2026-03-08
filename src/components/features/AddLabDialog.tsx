@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -10,6 +8,8 @@ import { insertLabResult } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
 import { computeRiskScore, insertRiskSnapshot } from "@/services/riskSnapshotService";
 import { insertPatientAlert } from "@/services/patientAlertService";
+import { ValidatedInput } from "@/components/ui/form-field";
+import { liverLabSchema, kidneyLabSchema } from "@/lib/validations";
 
 interface AddLabDialogProps {
   patientId: string;
@@ -21,16 +21,41 @@ interface AddLabDialogProps {
 export default function AddLabDialog({ patientId, organType, onLabAdded, patientData }: AddLabDialogProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
   const { t } = useLanguage();
   const [form, setForm] = useState<Record<string, string>>({
     tacrolimus_level: "", alt: "", ast: "", total_bilirubin: "", direct_bilirubin: "",
     creatinine: "", egfr: "", proteinuria: "", potassium: "",
   });
-  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const set = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => { const n = { ...prev }; delete n[key]; return n; });
+  };
+
+  const validate = (): boolean => {
+    const schema = organType === "liver" ? liverLabSchema : kidneyLabSchema;
+    const fields = organType === "liver"
+      ? { tacrolimus_level: form.tacrolimus_level, alt: form.alt, ast: form.ast, total_bilirubin: form.total_bilirubin, direct_bilirubin: form.direct_bilirubin }
+      : { creatinine: form.creatinine, egfr: form.egfr, proteinuria: form.proteinuria, potassium: form.potassium };
+
+    const result = schema.safeParse(fields);
+    if (result.success) { setErrors({}); return true; }
+
+    const newErrors: Record<string, string> = {};
+    result.error.errors.forEach((e) => {
+      const field = e.path[0]?.toString();
+      if (field && !newErrors[field]) newErrors[field] = e.message;
+    });
+    setErrors(newErrors);
+    return false;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setSaving(true);
     try {
       const labData: any = { patient_id: patientId };
@@ -89,6 +114,7 @@ export default function AddLabDialog({ patientId, organType, onLabAdded, patient
       await insertEvent({ patient_id: patientId, event_type: "lab_added", description: t("detail.labAddedEvent") });
       toast({ title: t("detail.labAdded") });
       setForm({ tacrolimus_level: "", alt: "", ast: "", total_bilirubin: "", direct_bilirubin: "", creatinine: "", egfr: "", proteinuria: "", potassium: "" });
+      setErrors({});
       setOpen(false);
       onLabAdded();
     } catch (err: any) {
@@ -106,18 +132,18 @@ export default function AddLabDialog({ patientId, organType, onLabAdded, patient
         <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
           {organType === "liver" ? (
             <>
-              <div className="space-y-2"><Label>{t("add.tacrolimus")} *</Label><Input type="number" step="0.1" value={form.tacrolimus_level} onChange={(e) => set("tacrolimus_level", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.alt")} *</Label><Input type="number" value={form.alt} onChange={(e) => set("alt", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.ast")} *</Label><Input type="number" value={form.ast} onChange={(e) => set("ast", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.totalBilirubin")} *</Label><Input type="number" step="0.1" value={form.total_bilirubin} onChange={(e) => set("total_bilirubin", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.directBilirubin")} *</Label><Input type="number" step="0.1" value={form.direct_bilirubin} onChange={(e) => set("direct_bilirubin", e.target.value)} required /></div>
+              <ValidatedInput label={t("add.tacrolimus")} required error={errors.tacrolimus_level} type="number" step="0.1" value={form.tacrolimus_level} onChange={(e) => set("tacrolimus_level", e.target.value)} />
+              <ValidatedInput label={t("add.alt")} required error={errors.alt} type="number" value={form.alt} onChange={(e) => set("alt", e.target.value)} />
+              <ValidatedInput label={t("add.ast")} required error={errors.ast} type="number" value={form.ast} onChange={(e) => set("ast", e.target.value)} />
+              <ValidatedInput label={t("add.totalBilirubin")} required error={errors.total_bilirubin} type="number" step="0.1" value={form.total_bilirubin} onChange={(e) => set("total_bilirubin", e.target.value)} />
+              <ValidatedInput label={t("add.directBilirubin")} required error={errors.direct_bilirubin} type="number" step="0.1" value={form.direct_bilirubin} onChange={(e) => set("direct_bilirubin", e.target.value)} />
             </>
           ) : (
             <>
-              <div className="space-y-2"><Label>{t("add.creatinine")} *</Label><Input type="number" step="0.1" value={form.creatinine} onChange={(e) => set("creatinine", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.egfr")} *</Label><Input type="number" value={form.egfr} onChange={(e) => set("egfr", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.proteinuria")} *</Label><Input type="number" step="0.1" value={form.proteinuria} onChange={(e) => set("proteinuria", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.potassium")} *</Label><Input type="number" step="0.1" value={form.potassium} onChange={(e) => set("potassium", e.target.value)} required /></div>
+              <ValidatedInput label={t("add.creatinine")} required error={errors.creatinine} type="number" step="0.1" value={form.creatinine} onChange={(e) => set("creatinine", e.target.value)} />
+              <ValidatedInput label={t("add.egfr")} required error={errors.egfr} type="number" value={form.egfr} onChange={(e) => set("egfr", e.target.value)} />
+              <ValidatedInput label={t("add.proteinuria")} required error={errors.proteinuria} type="number" step="0.1" value={form.proteinuria} onChange={(e) => set("proteinuria", e.target.value)} />
+              <ValidatedInput label={t("add.potassium")} required error={errors.potassium} type="number" step="0.1" value={form.potassium} onChange={(e) => set("potassium", e.target.value)} />
             </>
           )}
           <div className="sm:col-span-2">

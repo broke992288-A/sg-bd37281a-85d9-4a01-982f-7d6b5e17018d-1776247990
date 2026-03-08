@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, Users, AlertTriangle, Activity, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, UserPlus, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePaginatedPatients } from "@/hooks/usePatients";
 import { riskColorClass, getAge } from "@/utils/risk";
-import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
+import { SkeletonTable } from "@/components/ui/skeleton-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { PatientFilters } from "@/services/patientService";
 
 const PAGE_SIZE = 20;
@@ -81,10 +82,13 @@ export default function Patients() {
             {loading ? (
               <SkeletonTable rows={8} cols={5} />
             ) : patients.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-muted-foreground text-sm">{searchQuery ? t("medications.noResults") || "Natija topilmadi" : t("dashboard.noPatients")}</p>
-              </div>
+              <EmptyState
+                icon={Users}
+                title={searchQuery ? (t("medications.noResults") || "Natija topilmadi") : t("dashboard.noPatients")}
+                description={searchQuery ? "Қидирув сўзини ўзгартириб кўринг" : "Янги бемор қўшиш учун тугмани босинг"}
+                actionLabel={!searchQuery ? t("patients.newTransplant") : undefined}
+                onAction={!searchQuery ? () => navigate("/add-patient") : undefined}
+              />
             ) : (
               <>
                 <Table>

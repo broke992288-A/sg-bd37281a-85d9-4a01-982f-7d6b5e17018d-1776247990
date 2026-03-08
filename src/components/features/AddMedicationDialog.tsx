@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
@@ -10,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddMedication } from "@/hooks/useMedications";
+import { ValidatedInput, FormField } from "@/components/ui/form-field";
+import { medicationSchema } from "@/lib/validations";
 
 interface Props {
   patientId: string;
@@ -21,6 +21,7 @@ export default function AddMedicationDialog({ patientId }: Props) {
   const { user } = useAuth();
   const addMed = useAddMedication(patientId);
   const [open, setOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [name, setName] = useState("");
   const [dosage, setDosage] = useState("");
@@ -28,11 +29,29 @@ export default function AddMedicationDialog({ patientId }: Props) {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
 
+  const clearField = (field: string) => {
+    if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
+  };
+
   const handleSave = async () => {
-    if (!name.trim() || !dosage.trim()) {
-      toast({ title: t("med.fillRequired"), variant: "destructive" });
+    const result = medicationSchema.safeParse({
+      medication_name: name,
+      dosage,
+      frequency,
+      start_date: startDate,
+      notes: notes || undefined,
+    });
+
+    if (!result.success) {
+      const newErrors: Record<string, string> = {};
+      result.error.errors.forEach((e) => {
+        const field = e.path[0]?.toString();
+        if (field && !newErrors[field]) newErrors[field] = e.message;
+      });
+      setErrors(newErrors);
       return;
     }
+
     try {
       await addMed.mutateAsync({
         patient_id: patientId,
@@ -45,7 +64,7 @@ export default function AddMedicationDialog({ patientId }: Props) {
       });
       toast({ title: t("med.added") });
       setOpen(false);
-      setName(""); setDosage(""); setNotes("");
+      setName(""); setDosage(""); setNotes(""); setErrors({});
     } catch (err: any) {
       toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     }
@@ -61,18 +80,25 @@ export default function AddMedicationDialog({ patientId }: Props) {
           <DialogTitle>{t("med.addMedication")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
-          <div>
-            <Label>{t("med.medicationName")}</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tacrolimus, Prednisone..." />
-          </div>
+          <ValidatedInput
+            label={t("med.medicationName")}
+            required
+            error={errors.medication_name}
+            value={name}
+            onChange={(e) => { setName(e.target.value); clearField("medication_name"); }}
+            placeholder="Tacrolimus, Prednisone..."
+          />
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>{t("med.dosage")}</Label>
-              <Input value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="5 mg" />
-            </div>
-            <div>
-              <Label>{t("med.frequency")}</Label>
-              <Select value={frequency} onValueChange={setFrequency}>
+            <ValidatedInput
+              label={t("med.dosage")}
+              required
+              error={errors.dosage}
+              value={dosage}
+              onChange={(e) => { setDosage(e.target.value); clearField("dosage"); }}
+              placeholder="5 mg"
+            />
+            <FormField label={t("med.frequency")} error={errors.frequency}>
+              <Select value={frequency} onValueChange={(v) => { setFrequency(v); clearField("frequency"); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="daily">{t("med.daily")}</SelectItem>
@@ -82,16 +108,19 @@ export default function AddMedicationDialog({ patientId }: Props) {
                   <SelectItem value="as_needed">{t("med.asNeeded")}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
           </div>
-          <div>
-            <Label>{t("med.startDate")}</Label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          </div>
-          <div>
-            <Label>{t("med.notes")} ({t("common.optional")})</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-          </div>
+          <ValidatedInput
+            label={t("med.startDate")}
+            required
+            error={errors.start_date}
+            type="date"
+            value={startDate}
+            onChange={(e) => { setStartDate(e.target.value); clearField("start_date"); }}
+          />
+          <FormField label={`${t("med.notes")} (${t("common.optional")})`} error={errors.notes}>
+            <Textarea value={notes} onChange={(e) => { setNotes(e.target.value); clearField("notes"); }} rows={2} />
+          </FormField>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
             <Button onClick={handleSave} disabled={addMed.isPending}>
