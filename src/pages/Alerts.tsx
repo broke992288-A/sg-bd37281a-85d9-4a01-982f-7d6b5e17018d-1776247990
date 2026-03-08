@@ -145,7 +145,7 @@ export default function Alerts() {
                                   {alert.patient_name}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(alert.created_at)}</span>
+                              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(alert.created_at, t)}</span>
                             </div>
                           </div>
                           {!alert.is_read && (
