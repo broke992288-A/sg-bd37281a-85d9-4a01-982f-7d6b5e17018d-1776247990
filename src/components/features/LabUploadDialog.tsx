@@ -368,7 +368,16 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
           // --- Compute risk score for each saved lab ---
           if (organType) {
             try {
-              const { score, level, flags } = computeRiskScore(organType, savedLab as any, patientData ?? {});
+              // Fetch previous lab for trend analysis
+              let prevLab = null;
+              try {
+                const prevLabs = await fetchLabsByPatientId(patientId, 2);
+                prevLab = prevLabs.length > 1 ? prevLabs[1] : null;
+              } catch { /* ignore */ }
+
+              const { score, level, flags, explanations } = computeRiskScore(
+                organType, savedLab as any, patientData ?? {}, prevLab
+              );
 
               const snapshot = await insertRiskSnapshot({
                 patient_id: patientId,
@@ -380,7 +389,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
                 ast: labData.ast ?? null,
                 total_bilirubin: labData.total_bilirubin ?? null,
                 tacrolimus_level: labData.tacrolimus_level ?? null,
-                details: { flags },
+                details: { flags, explanations },
               });
 
               // Create alert if risk is high or medium
@@ -403,6 +412,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
               }
             } catch (riskErr) {
               console.error("Risk calculation error:", riskErr);
+            }
             }
           }
         }
