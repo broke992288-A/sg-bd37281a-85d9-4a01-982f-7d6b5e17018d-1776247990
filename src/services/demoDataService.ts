@@ -45,115 +45,142 @@ export interface DemoProgress {
   total: number;
 }
 
+/** Insert rows in batches, returning inserted rows with ids */
+async function batchInsert(
+  table: "patients" | "lab_results" | "patient_alerts" | "medications",
+  rows: Record<string, any>[],
+  batchSize: number,
+  onBatch?: (done: number) => void,
+): Promise<{ id: string }[]> {
+  const allInserted: { id: string }[] = [];
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    const { data, error } = await (supabase
+      .from(table)
+      .insert(batch as any)
+      .select("id") as any);
+    if (error) throw new Error(`${table} batch insert: ${error.message}`);
+    if (data) allInserted.push(...(data as { id: string }[]));
+    onBatch?.(Math.min(i + batchSize, rows.length));
+  }
+  return allInserted;
+}
+
+/** Insert rows in batches without returning data (faster) */
+async function batchInsertNoReturn(
+  table: "patients" | "lab_results" | "patient_alerts" | "medications",
+  rows: Record<string, any>[],
+  batchSize: number,
+  onBatch?: (done: number) => void,
+): Promise<number> {
+  let count = 0;
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    const { error } = await (supabase.from(table).insert(batch as any) as any);
+    if (!error) count += batch.length;
+    onBatch?.(Math.min(i + batchSize, rows.length));
+  }
+  return count;
+}
+
 export async function generateDemoData(
   doctorId: string,
   onProgress?: (p: DemoProgress) => void
 ): Promise<{ patients: number; labs: number; alerts: number; medications: number }> {
   const patientCount = 50;
-  const labsPerPatient = 4; // ~200 total
+  const labsPerPatient = 4;
   const alertCount = 20;
-  const medsPerPatient = 2; // ~100 total
+  const medsPerPatient = 2;
 
-  const patientIds: string[] = [];
-
-  // 1. Create patients
-  for (let i = 0; i < patientCount; i++) {
-    onProgress?.({ step: "patients", current: i + 1, total: patientCount });
+  // 1. Build all patient rows
+  const patientRows = Array.from({ length: patientCount }, () => {
     const isMale = Math.random() > 0.4;
     const name = isMale ? rand(UZBEK_NAMES_MALE) : rand(UZBEK_NAMES_FEMALE);
     const surname = rand(SURNAMES);
     const organ = Math.random() > 0.4 ? "kidney" : "liver";
     const risk = Math.random() < 0.15 ? "high" : Math.random() < 0.4 ? "medium" : "low";
+    return {
+      full_name: `${name} ${isMale ? surname : surname + "a"}`,
+      date_of_birth: randDate(1950, 2005),
+      gender: isMale ? "male" : "female",
+      organ_type: organ,
+      risk_level: risk,
+      assigned_doctor_id: doctorId,
+      transplant_number: Math.random() > 0.8 ? 2 : 1,
+      transplant_date: randDate(2018, 2026),
+      dialysis_history: organ === "kidney" ? Math.random() > 0.6 : false,
+      region: rand(REGIONS),
+    };
+  });
 
-    const { data, error } = await supabase
-      .from("patients")
-      .insert({
-        full_name: `${name} ${isMale ? surname : surname + "a"}`,
-        date_of_birth: randDate(1950, 2005),
-        gender: isMale ? "male" : "female",
-        organ_type: organ,
-        risk_level: risk,
-        assigned_doctor_id: doctorId,
-        transplant_number: Math.random() > 0.8 ? 2 : 1,
-        transplant_date: randDate(2018, 2026),
-        dialysis_history: organ === "kidney" ? Math.random() > 0.6 : false,
-        region: rand(REGIONS),
-      })
-      .select("id")
-      .single();
+  // Batch insert patients (10 per batch)
+  onProgress?.({ step: "patients", current: 0, total: patientCount });
+  const inserted = await batchInsert("patients", patientRows, 10, (done) => {
+    onProgress?.({ step: "patients", current: done, total: patientCount });
+  });
+  const patientIds = inserted.map((r) => r.id);
 
-    if (error) throw new Error(`Patient ${i}: ${error.message}`);
-    patientIds.push(data.id);
-  }
-
-  // 2. Create lab results
-  let labCount = 0;
+  // 2. Build all lab result rows
+  const labRows: Record<string, any>[] = [];
   for (let i = 0; i < patientIds.length; i++) {
-    onProgress?.({ step: "labs", current: i + 1, total: patientIds.length });
     const pid = patientIds[i];
-    // determine organ
-    const isKidney = i % 5 !== 0; // roughly 80% kidney
-
+    const isKidney = patientRows[i].organ_type === "kidney";
     for (let j = 0; j < labsPerPatient; j++) {
       const recorded = new Date();
       recorded.setDate(recorded.getDate() - (j * 30 + Math.floor(Math.random() * 10)));
-
-      const labData: Record<string, any> = {
-        patient_id: pid,
-        recorded_at: recorded.toISOString(),
-      };
-
+      const lab: Record<string, any> = { patient_id: pid, recorded_at: recorded.toISOString() };
       if (isKidney) {
-        labData.creatinine = randNum(0.8, 4.0);
-        labData.egfr = randNum(15, 120, 0);
-        labData.potassium = randNum(3.0, 6.5);
-        labData.proteinuria = randNum(0, 3.0);
-        labData.sodium = randNum(130, 150, 0);
-        labData.hb = randNum(8, 16);
+        lab.creatinine = randNum(0.8, 4.0);
+        lab.egfr = randNum(15, 120, 0);
+        lab.potassium = randNum(3.0, 6.5);
+        lab.proteinuria = randNum(0, 3.0);
+        lab.sodium = randNum(130, 150, 0);
+        lab.hb = randNum(8, 16);
       } else {
-        labData.tacrolimus_level = randNum(2, 25);
-        labData.alt = randNum(10, 300, 0);
-        labData.ast = randNum(10, 250, 0);
-        labData.total_bilirubin = randNum(0.2, 8);
-        labData.direct_bilirubin = randNum(0.1, 4);
-        labData.albumin = randNum(2.5, 5.0);
+        lab.tacrolimus_level = randNum(2, 25);
+        lab.alt = randNum(10, 300, 0);
+        lab.ast = randNum(10, 250, 0);
+        lab.total_bilirubin = randNum(0.2, 8);
+        lab.direct_bilirubin = randNum(0.1, 4);
+        lab.albumin = randNum(2.5, 5.0);
       }
-
-      const { error } = await supabase.from("lab_results").insert(labData as any);
-      if (!error) labCount++;
+      labRows.push(lab);
     }
   }
 
-  // 3. Alerts — the DB trigger `trg_check_lab_abnormal` already creates some.
-  // Add supplementary alerts.
-  let alertsCreated = 0;
+  // Batch insert labs (20 per batch)
+  onProgress?.({ step: "labs", current: 0, total: labRows.length });
+  const labCount = await batchInsertNoReturn("lab_results", labRows, 20, (done) => {
+    onProgress?.({ step: "labs", current: done, total: labRows.length });
+  });
+
+  // 3. Build alert rows
   const alertTypes = ["risk", "medication", "lab_abnormal", "follow_up"];
   const severities = ["critical", "warning", "info"];
   const titles = [
     "Yuqori xavf aniqlandi", "Dori dozasi tekshirilsin", "Laboratoriya og'ishi",
     "Nazorat tekshiruvi kerak", "Rejektsiya ehtimoli", "Tacrolimus norma tashqarida",
   ];
+  const alertRows = Array.from({ length: Math.min(alertCount, patientIds.length) }, (_, i) => ({
+    patient_id: patientIds[i % patientIds.length],
+    alert_type: rand(alertTypes),
+    severity: rand(severities),
+    title: rand(titles),
+    message: "Demo alert — avtomatik yaratilgan",
+    is_read: Math.random() > 0.7,
+  }));
 
-  for (let i = 0; i < Math.min(alertCount, patientIds.length); i++) {
-    onProgress?.({ step: "alerts", current: i + 1, total: alertCount });
-    const { error } = await supabase.from("patient_alerts").insert({
-      patient_id: patientIds[i % patientIds.length],
-      alert_type: rand(alertTypes),
-      severity: rand(severities),
-      title: rand(titles),
-      message: "Demo alert — avtomatik yaratilgan",
-      is_read: Math.random() > 0.7,
-    });
-    if (!error) alertsCreated++;
-  }
+  onProgress?.({ step: "alerts", current: 0, total: alertRows.length });
+  const alertsCreated = await batchInsertNoReturn("patient_alerts", alertRows, 20, (done) => {
+    onProgress?.({ step: "alerts", current: done, total: alertRows.length });
+  });
 
-  // 4. Medications
-  let medsCreated = 0;
+  // 4. Build medication rows
+  const medRows: Record<string, any>[] = [];
   for (let i = 0; i < patientIds.length; i++) {
-    onProgress?.({ step: "medications", current: i + 1, total: patientIds.length });
     for (let m = 0; m < medsPerPatient; m++) {
       const med = rand(MEDICATIONS);
-      const { error } = await supabase.from("medications").insert({
+      medRows.push({
         patient_id: patientIds[i],
         medication_name: med.name,
         dosage: rand(med.dosages),
@@ -162,9 +189,13 @@ export async function generateDemoData(
         prescribed_by: doctorId,
         is_active: Math.random() > 0.2,
       });
-      if (!error) medsCreated++;
     }
   }
+
+  onProgress?.({ step: "medications", current: 0, total: medRows.length });
+  const medsCreated = await batchInsertNoReturn("medications", medRows, 20, (done) => {
+    onProgress?.({ step: "medications", current: done, total: medRows.length });
+  });
 
   return { patients: patientIds.length, labs: labCount, alerts: alertsCreated, medications: medsCreated };
 }
