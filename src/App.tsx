@@ -22,6 +22,7 @@ import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import Alerts from "./pages/Alerts";
 import Medications from "./pages/Medications";
+import PatientMedications from "./pages/PatientMedications";
 import Patients from "./pages/Patients";
 import NotFound from "./pages/NotFound";
 
