@@ -28,7 +28,7 @@ export default function Patients() {
     return matchesSearch && matchesOrgan && matchesRisk;
   });
 
-  const getRiskBadge = (level: string) => <Badge className={riskColorClass(level)}>{level.toUpperCase()}</Badge>;
+  const getRiskBadge = (level: string) => <Badge className={riskColorClass(level)}>{t(`risk.${level}`)}</Badge>;
 
   const stats = {
     total: patients.length,
