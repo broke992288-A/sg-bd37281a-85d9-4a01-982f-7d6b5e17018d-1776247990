@@ -71,9 +71,12 @@ export default function PatientProfile() {
 
         {/* Tabs */}
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
               <User className="h-3.5 w-3.5" /> {t("profile.overview")}
+            </TabsTrigger>
+            <TabsTrigger value="medications" className="gap-1.5 text-xs sm:text-sm">
+              <Pill className="h-3.5 w-3.5" /> {t("med.title")}
             </TabsTrigger>
             <TabsTrigger value="results" className="gap-1.5 text-xs sm:text-sm">
               <FlaskConical className="h-3.5 w-3.5" /> {t("profile.labResults")}
