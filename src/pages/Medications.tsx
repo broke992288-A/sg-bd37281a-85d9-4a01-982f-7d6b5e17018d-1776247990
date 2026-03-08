@@ -82,7 +82,7 @@ export default function Medications() {
           {isLoading ? <SkeletonTable rows={6} cols={5} /> : filtered.length === 0 ? (
             <div className="text-center py-12">
               <Pill className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground text-sm">{search ? t("medications.noResults") || "Natija topilmadi" : t("dashboard.noPatients")}</p>
+              <p className="text-muted-foreground text-sm">{search ? t("medications.noResults") : t("dashboard.noPatients")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
