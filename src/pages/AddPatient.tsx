@@ -152,7 +152,7 @@ export default function AddPatient() {
                 <div className="space-y-2">
                   <Label>{t("add.rejectionType")}</Label>
                   <Select value={form.rejection_type} onValueChange={(v) => set("rejection_type", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
                     <SelectContent><SelectItem value="ACR">ACR</SelectItem><SelectItem value="AMR">AMR</SelectItem><SelectItem value="Chronic">Chronic</SelectItem><SelectItem value="Unknown">Unknown</SelectItem></SelectContent>
                   </Select>
                 </div>
