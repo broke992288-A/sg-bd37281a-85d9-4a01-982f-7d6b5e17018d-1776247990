@@ -143,9 +143,9 @@ export default function PatientMedications() {
                                           try {
                                             const { updateMedication } = await import("@/services/medicationService");
                                             await updateMedication(med.id, { is_active: false, end_date: new Date().toISOString().slice(0, 10) } as any);
-                                            deleteMed.reset();
-                                            // Trigger refetch
-                                            window.location.reload();
+                                            const { useQueryClient: getQC } = await import("@tanstack/react-query");
+                                            // Invalidate via already available queryClient
+                                            queryClient.invalidateQueries({ queryKey: ["patient-medications", id] });
                                           } catch (err: any) {
                                             toast({ title: t("common.error"), description: err.message, variant: "destructive" });
                                           }

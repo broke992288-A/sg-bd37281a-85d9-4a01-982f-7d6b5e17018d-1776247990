@@ -408,7 +408,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
       }
 
 
-      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `Lab report uploaded via OCR (${mergedGroups.length} date(s))` });
+      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `${t("upload.labUploadedEvent")} (${mergedGroups.length})` });
       logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: mergedGroups.length, totalFilled } });
       
       toast({ title: `${mergedGroups.length} ${t("upload.resultsSaved")}` });

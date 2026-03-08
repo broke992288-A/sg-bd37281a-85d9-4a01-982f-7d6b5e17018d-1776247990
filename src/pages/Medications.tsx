@@ -94,7 +94,7 @@ export default function Medications() {
                         <span className="text-xs text-muted-foreground w-10">{Math.round(Math.min((med.stock / (med.minStock * 5)) * 100, 100))}%</span>
                       </div>
                     </TableCell>
-                    <TableCell>{med.monthlyUsage}/mo</TableCell>
+                    <TableCell>{med.monthlyUsage}/{t("med.perMonth")}</TableCell>
                     <TableCell>{getTrendIcon(med.trend)}</TableCell>
                     <TableCell>{getStatusBadge(med.status)}</TableCell>
                   </TableRow>

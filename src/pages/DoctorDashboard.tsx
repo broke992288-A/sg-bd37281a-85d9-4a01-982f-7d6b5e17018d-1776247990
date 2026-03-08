@@ -23,7 +23,7 @@ export default function DoctorDashboard() {
   const pieData = [
     { name: t("dashboard.highRisk"), value: highRisk.length, color: "hsl(0, 72%, 51%)" },
     { name: t("dashboard.mediumRisk"), value: mediumRisk.length, color: "hsl(38, 92%, 50%)" },
-    { name: "Low", value: patients.length - highRisk.length - mediumRisk.length, color: "hsl(142, 71%, 35%)" },
+    { name: t("patients.lowRisk"), value: patients.length - highRisk.length - mediumRisk.length, color: "hsl(142, 71%, 35%)" },
   ].filter((d) => d.value > 0);
 
   const riskBadge = (level: string) => <Badge className={riskColorClass(level)}>{level.toUpperCase()}</Badge>;
