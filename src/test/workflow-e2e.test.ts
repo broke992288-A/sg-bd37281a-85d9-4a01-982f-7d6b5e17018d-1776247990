@@ -230,7 +230,7 @@ describe("Workflow: Score Capping", () => {
 
 // ── 9. DASHBOARD DATA SHAPE ──────────────────────────────────────
 describe("Workflow: Dashboard Display", () => {
-  it("risk badge maps correctly for all levels", () => {
+  it("risk badge maps correctly for all levels", async () => {
     const { riskColorClass } = await import("@/utils/risk");
     expect(riskColorClass("high")).toContain("destructive");
     expect(riskColorClass("medium")).toContain("warning");
