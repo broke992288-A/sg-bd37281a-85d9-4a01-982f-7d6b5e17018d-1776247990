@@ -412,8 +412,6 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
               }
             } catch (riskErr) {
               console.error("Risk calculation error:", riskErr);
-            }
-            }
           }
         }
       }
