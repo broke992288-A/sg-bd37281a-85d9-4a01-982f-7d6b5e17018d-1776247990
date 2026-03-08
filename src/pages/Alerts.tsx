@@ -10,7 +10,7 @@ import { markAlertRead, markAllAlertsRead } from "@/services/patientAlertService
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
+
 
 function severityToType(severity: string): string {
   if (severity === "critical") return "critical";
