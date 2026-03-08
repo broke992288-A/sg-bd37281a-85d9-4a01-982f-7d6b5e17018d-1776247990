@@ -107,8 +107,8 @@ export default function PatientProfile() {
               <CardHeader><CardTitle className="text-lg">{t("profile.patientInfo")}</CardTitle></CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 <InfoRow label={t("profile.fullName")} value={patient.full_name} />
-                <InfoRow label={t("profile.organType")} value={patient.organ_type} />
-                <InfoRow label={t("profile.gender")} value={patient.gender ?? "—"} />
+                <InfoRow label={t("profile.organType")} value={t(`organ.${patient.organ_type}`)} />
+                <InfoRow label={t("profile.gender")} value={patient.gender ? t(`gender.${patient.gender}`) : "—"} />
                 <InfoRow label={t("profile.dob")} value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : "—"} />
                 {patient.phone && <InfoRow label={t("common.phone")} value={patient.phone} icon={<Phone className="h-3 w-3" />} />}
                 {patient.transplant_date && <InfoRow label={t("profile.transplantDate")} value={new Date(patient.transplant_date).toLocaleDateString()} icon={<Calendar className="h-3 w-3" />} />}
