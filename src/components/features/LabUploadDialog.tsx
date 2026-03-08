@@ -412,10 +412,10 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
               }
             } catch (riskErr) {
               console.error("Risk calculation error:", riskErr);
+            }
           }
         }
       }
-
 
       await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `${t("upload.labUploadedEvent")} (${mergedGroups.length})` });
       logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: mergedGroups.length, totalFilled } });
