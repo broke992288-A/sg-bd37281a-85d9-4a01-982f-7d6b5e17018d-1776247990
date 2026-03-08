@@ -117,8 +117,8 @@ export default function PatientDetail() {
         <Card>
           <CardHeader><CardTitle className="text-lg">{t("detail.patientInfo")}</CardTitle></CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            <InfoRow label={t("home.organ")} value={patient.organ_type} />
-            <InfoRow label={t("add.gender")} value={patient.gender ?? "—"} />
+            <InfoRow label={t("home.organ")} value={t(`organ.${patient.organ_type}`)} />
+            <InfoRow label={t("add.gender")} value={patient.gender ? t(`gender.${patient.gender}`) : "—"} />
             <InfoRow label={t("detail.dob")} value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : "—"} />
             <InfoRow label={t("detail.added")} value={new Date(patient.created_at).toLocaleDateString()} />
           </CardContent>
