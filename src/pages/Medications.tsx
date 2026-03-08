@@ -47,8 +47,8 @@ export default function Medications() {
 
   const stockStats = [
     { label: t("medications.totalMedications"), value: uniqueMedNames.toString(), icon: Package, color: "text-primary" },
-    { label: t("medications.activeLabel") || "Faol buyurtmalar", value: totalActive.toString(), icon: Pill, color: "text-success" },
-    { label: t("medications.inactiveLabel") || "Tugatilgan", value: totalInactive.toString(), icon: AlertTriangle, color: "text-warning" },
+    { label: t("medications.activeLabel"), value: totalActive.toString(), icon: Pill, color: "text-success" },
+    { label: t("medications.inactiveLabel"), value: totalInactive.toString(), icon: AlertTriangle, color: "text-warning" },
     { label: t("dashboard.totalPatients"), value: uniquePatients.toString(), icon: Package, color: "text-accent" },
   ];
 
@@ -82,7 +82,7 @@ export default function Medications() {
           {isLoading ? <SkeletonTable rows={6} cols={5} /> : filtered.length === 0 ? (
             <div className="text-center py-12">
               <Pill className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground text-sm">{search ? t("medications.noResults") || "Natija topilmadi" : t("dashboard.noPatients")}</p>
+              <p className="text-muted-foreground text-sm">{search ? t("medications.noResults") : t("dashboard.noPatients")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -91,9 +91,9 @@ export default function Medications() {
                   <TableRow>
                     <TableHead>{t("medications.medication")}</TableHead>
                     <TableHead className="text-right">{t("dashboard.totalPatients")}</TableHead>
-                    <TableHead className="text-right">{t("medications.activeLabel") || "Faol"}</TableHead>
-                    <TableHead>{t("medications.dosages") || "Dozalar"}</TableHead>
-                    <TableHead>{t("medications.frequency") || "Chastota"}</TableHead>
+                     <TableHead className="text-right">{t("medications.activeLabel")}</TableHead>
+                     <TableHead>{t("medications.dosages")}</TableHead>
+                     <TableHead>{t("medications.frequency")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
