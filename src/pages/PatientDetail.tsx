@@ -52,7 +52,7 @@ export default function PatientDetail() {
     setOverriding(true);
     try {
       await updatePatient(id, { risk_level: overrideLevel });
-      await insertEvent({ patient_id: id, event_type: "risk_override", description: `Risk overridden to ${overrideLevel}: ${overrideReason}`, created_by: user.id });
+      await insertEvent({ patient_id: id, event_type: "risk_override", description: `${t("event.riskOverridden")}: ${t(`risk.${overrideLevel}`)} — ${overrideReason}`, created_by: user.id });
       setOverrideLevel(""); setOverrideReason("");
       toast({ title: t("detail.riskOverridden") });
       invalidateAll();
@@ -71,7 +71,7 @@ export default function PatientDetail() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
             <span className="text-lg font-bold">{patient.full_name}</span>
-            <Badge className={riskColorClass(patient.risk_level)}>{patient.risk_level.toUpperCase()}</Badge>
+            <Badge className={riskColorClass(patient.risk_level)}>{t(`risk.${patient.risk_level}`)}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Link to={`/patient/${id}/medications`}>
@@ -117,8 +117,8 @@ export default function PatientDetail() {
         <Card>
           <CardHeader><CardTitle className="text-lg">{t("detail.patientInfo")}</CardTitle></CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            <InfoRow label={t("home.organ")} value={patient.organ_type} />
-            <InfoRow label={t("add.gender")} value={patient.gender ?? "—"} />
+            <InfoRow label={t("home.organ")} value={t(`organ.${patient.organ_type}`)} />
+            <InfoRow label={t("add.gender")} value={patient.gender ? t(`gender.${patient.gender}`) : "—"} />
             <InfoRow label={t("detail.dob")} value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : "—"} />
             <InfoRow label={t("detail.added")} value={new Date(patient.created_at).toLocaleDateString()} />
           </CardContent>

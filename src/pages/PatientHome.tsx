@@ -30,14 +30,14 @@ export default function PatientHome() {
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><User className="h-5 w-5 text-primary" />{t("home.healthStatus")}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.name")}</span><span className="font-medium">{patient.full_name}</span></div>
-                <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.organ")}</span><span className="capitalize font-medium">{patient.organ_type}</span></div>
+                <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.organ")}</span><span className="font-medium">{t(`organ.${patient.organ_type}`)}</span></div>
                 {patient.phone && (
                   <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" />{t("common.phone")}</span><span className="font-medium">{patient.phone}</span></div>
                 )}
                 {patient.transplant_date && (
                   <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />{t("profile.transplant")}</span><span className="font-medium">{new Date(patient.transplant_date).toLocaleDateString()}</span></div>
                 )}
-                <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.riskLevel")}</span><Badge className={riskColorClass(patient.risk_level)}>{patient.risk_level.toUpperCase()}</Badge></div>
+                <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.riskLevel")}</span><Badge className={riskColorClass(patient.risk_level)}>{t(`risk.${patient.risk_level}`)}</Badge></div>
                 {patient.risk_level === "high" && (
                   <div className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">{t("home.highRiskWarning")}</div>
                 )}

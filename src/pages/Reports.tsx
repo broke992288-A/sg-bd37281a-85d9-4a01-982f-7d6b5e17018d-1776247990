@@ -7,20 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell } from "recharts";
 import { useLanguage } from "@/hooks/useLanguage";
 
-const monthlyData = [
-  { month: "Jan", patients: 245, transplants: 12 },
-  { month: "Feb", patients: 268, transplants: 15 },
-  { month: "Mar", patients: 302, transplants: 18 },
-  { month: "Apr", patients: 285, transplants: 14 },
-  { month: "May", patients: 320, transplants: 22 },
-  { month: "Jun", patients: 356, transplants: 19 },
-];
+function useMonthlyData(t: (key: string) => string) {
+  return [
+    { month: t("month.jan"), patients: 245, transplants: 12 },
+    { month: t("month.feb"), patients: 268, transplants: 15 },
+    { month: t("month.mar"), patients: 302, transplants: 18 },
+    { month: t("month.apr"), patients: 285, transplants: 14 },
+    { month: t("month.may"), patients: 320, transplants: 22 },
+    { month: t("month.jun"), patients: 356, transplants: 19 },
+  ];
+}
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--accent))"];
 
 export default function Reports() {
   const { t } = useLanguage();
-
+  const monthlyData = useMonthlyData(t);
   const budgetData = [
     { name: t("reports.medications"), value: 45, amount: 2250000 },
     { name: t("reports.equipment"), value: 20, amount: 1000000 },

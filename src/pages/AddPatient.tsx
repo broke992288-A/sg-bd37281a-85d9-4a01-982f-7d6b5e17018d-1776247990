@@ -69,16 +69,16 @@ export default function AddPatient() {
       }
       await insertLabResult(labData);
 
-      const txLabel = organ === "liver" ? "Liver" : "Kidney";
+      const txLabel = organ === "liver" ? t("organ.liver") : t("organ.kidney");
       const events: { patient_id: string; event_type: string; description: string; created_by: string }[] = [
-        { patient_id: patient.id, event_type: "transplant_added", description: `${txLabel} Tx #${form.transplant_number} added`, created_by: user.id },
+        { patient_id: patient.id, event_type: "transplant_added", description: `${txLabel} Tx #${form.transplant_number} — ${t("event.txAdded")}`, created_by: user.id },
       ];
       if (organ === "kidney" && form.dialysis_history === "yes") {
-        events.push({ patient_id: patient.id, event_type: "dialysis_recorded", description: "Return to dialysis recorded", created_by: user.id });
+        events.push({ patient_id: patient.id, event_type: "dialysis_recorded", description: t("event.dialysisRecorded"), created_by: user.id });
       }
       await insertEvents(events);
 
-      toast({ title: t("add.patientAdded"), description: `${form.full_name} — Risk: ${riskLevel.toUpperCase()}` });
+      toast({ title: t("add.patientAdded"), description: `${form.full_name} — ${t("home.riskLevel")}: ${t(`risk.${riskLevel}`)}` });
       navigate("/doctor-dashboard");
     } catch (err: any) {
       toast({ title: t("common.error"), description: err.message, variant: "destructive" });
@@ -152,7 +152,7 @@ export default function AddPatient() {
                 <div className="space-y-2">
                   <Label>{t("add.rejectionType")}</Label>
                   <Select value={form.rejection_type} onValueChange={(v) => set("rejection_type", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
                     <SelectContent><SelectItem value="ACR">ACR</SelectItem><SelectItem value="AMR">AMR</SelectItem><SelectItem value="Chronic">Chronic</SelectItem><SelectItem value="Unknown">Unknown</SelectItem></SelectContent>
                   </Select>
                 </div>
