@@ -34,7 +34,9 @@ export default function Reports() {
     { name: t("reports.facilities"), value: 10, amount: 500000 },
   ];
 
-  const reports = [
+  type ReportItem = { id: number; name: string; date: string; type: string; size: string };
+
+  const reports: ReportItem[] = [
     { id: 1, name: t("reports.monthlyPatientRegistry"), date: "Oct 2024", type: "PDF", size: "2.4 MB" },
     { id: 2, name: t("reports.quarterlyTransplantStats"), date: "Q3 2024", type: "PDF", size: "5.1 MB" },
     { id: 3, name: t("reports.medicationUsageReport"), date: "Sep 2024", type: "Excel", size: "1.8 MB" },
@@ -56,20 +58,83 @@ export default function Reports() {
     doc.save(`${reportName.replace(/\s+/g, "_")}.pdf`);
   };
 
-  const handleDownload = (report: typeof reports[0]) => {
-    setGenerating(report.id);
-    setTimeout(() => {
-      const content = monthlyData.map(
-        (d) => `${d.month}: ${t("reports.patients")} — ${d.patients}, ${t("reports.transplants")} — ${d.transplants}`
-      );
-      generatePdf(report.name, [
+  const buildReportContent = (report: ReportItem) => {
+    const totalPatients = monthlyData.reduce((sum, month) => sum + month.patients, 0);
+    const totalTransplants = monthlyData.reduce((sum, month) => sum + month.transplants, 0);
+
+    if (report.id === 1) {
+      return [
         `${t("reports.availableReports")}: ${report.name}`,
         `${t("common.date")}: ${report.date}`,
         "",
-        ...content,
+        ...monthlyData.map(
+          (d) => `${d.month}: ${t("reports.patients")} — ${d.patients}, ${t("reports.transplants")} — ${d.transplants}`
+        ),
         "",
-        ...budgetData.map((b) => `${b.name}: ${b.value}% — $${(b.amount / 1000000).toFixed(2)}M`),
-      ]);
+        `${t("reports.patientsCovered")}: ${totalPatients}`,
+        `${t("reports.transplants")}: ${totalTransplants}`,
+      ];
+    }
+
+    if (report.id === 2) {
+      const quarterlyData = [
+        { quarter: "Q1", items: monthlyData.slice(0, 3) },
+        { quarter: "Q2", items: monthlyData.slice(3, 6) },
+      ].map((q) => ({
+        quarter: q.quarter,
+        patients: q.items.reduce((sum, item) => sum + item.patients, 0),
+        transplants: q.items.reduce((sum, item) => sum + item.transplants, 0),
+      }));
+
+      return [
+        `${t("reports.availableReports")}: ${report.name}`,
+        `${t("common.date")}: ${report.date}`,
+        "",
+        ...quarterlyData.map(
+          (q) => `${q.quarter}: ${t("reports.patients")} — ${q.patients}, ${t("reports.transplants")} — ${q.transplants}`
+        ),
+        "",
+        `${t("reports.transplants")}: ${totalTransplants}`,
+      ];
+    }
+
+    if (report.id === 3) {
+      return [
+        `${t("reports.availableReports")}: ${report.name}`,
+        `${t("common.date")}: ${report.date}`,
+        "",
+        ...budgetData
+          .filter((item) => item.name === t("reports.medications") || item.name === t("reports.personnel"))
+          .map((item) => `${item.name}: ${item.value}% — $${(item.amount / 1000000).toFixed(2)}M`),
+        "",
+        `${t("reports.totalBudget")}: $5.0M`,
+        `${t("reports.spentYTD")}: $3.2M`,
+      ];
+    }
+
+    const regionalData = [
+      { region: "Region A", patients: 132, transplants: 8 },
+      { region: "Region B", patients: 98, transplants: 5 },
+      { region: "Region C", patients: 115, transplants: 7 },
+      { region: "Region D", patients: 143, transplants: 9 },
+    ];
+
+    return [
+      `${t("reports.availableReports")}: ${report.name}`,
+      `${t("common.date")}: ${report.date}`,
+      "",
+      ...regionalData.map(
+        (r) => `${r.region}: ${t("reports.patients")} — ${r.patients}, ${t("reports.transplants")} — ${r.transplants}`
+      ),
+      "",
+      `${t("reports.patientsCovered")}: ${regionalData.reduce((sum, region) => sum + region.patients, 0)}`,
+    ];
+  };
+
+  const handleDownload = (report: ReportItem) => {
+    setGenerating(report.id);
+    setTimeout(() => {
+      generatePdf(report.name, buildReportContent(report));
       setGenerating(null);
       toast({ title: t("reports.downloaded") });
     }, 600);
