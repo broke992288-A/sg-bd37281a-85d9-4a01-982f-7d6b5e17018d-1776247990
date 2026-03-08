@@ -57,7 +57,7 @@ export default function DoctorDashboard() {
             {highRisk.length === 0 ? <p className="text-muted-foreground text-sm">{t("dashboard.noHighRisk")}</p> : (
               <Table><TableHeader><TableRow><TableHead>{t("dashboard.patient")}</TableHead><TableHead>{t("dashboard.organ")}</TableHead><TableHead>{t("dashboard.daysPostTx")}</TableHead><TableHead>{t("dashboard.keyLab")}</TableHead><TableHead>{t("dashboard.risk")}</TableHead></TableRow></TableHeader>
               <TableBody>{highRisk.map((p) => { const lab = labs[p.id]; const keyLab = p.organ_type === "liver" ? `Tac: ${lab?.tacrolimus_level ?? "—"}` : `Cr: ${lab?.creatinine ?? "—"}`; return (
-                <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/patient/${p.id}`)}><TableCell className="font-medium">{p.full_name}</TableCell><TableCell className="capitalize">{p.organ_type}</TableCell><TableCell>{daysSince(p.created_at)}</TableCell><TableCell>{keyLab}</TableCell><TableCell>{riskBadge(p.risk_level)}</TableCell></TableRow>
+                <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/patient/${p.id}`)}><TableCell className="font-medium">{p.full_name}</TableCell><TableCell>{t(`organ.${p.organ_type}`)}</TableCell><TableCell>{daysSince(p.created_at)}</TableCell><TableCell>{keyLab}</TableCell><TableCell>{riskBadge(p.risk_level)}</TableCell></TableRow>
               ); })}</TableBody></Table>
             )}
           </CardContent></Card>
