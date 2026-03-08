@@ -7,7 +7,7 @@ import { Camera, Upload, Loader2, CheckCircle2, Edit3, FileText, AlertTriangle, 
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { upsertLabResult } from "@/services/labService";
+import { upsertLabResult, fetchLabsByPatientId } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
 import { logAudit } from "@/services/auditService";
 import { computeRiskScore, insertRiskSnapshot } from "@/services/riskSnapshotService";
@@ -367,7 +367,16 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
           // --- Compute risk score for each saved lab ---
           if (organType) {
             try {
-              const { score, level, flags } = computeRiskScore(organType, savedLab as any, patientData ?? {});
+              // Fetch previous lab for trend analysis
+              let prevLab = null;
+              try {
+                const prevLabs = await fetchLabsByPatientId(patientId, 2);
+                prevLab = prevLabs.length > 1 ? prevLabs[1] : null;
+              } catch { /* ignore */ }
+
+              const { score, level, flags, explanations } = computeRiskScore(
+                organType, savedLab as any, patientData ?? {}, prevLab
+              );
 
               const snapshot = await insertRiskSnapshot({
                 patient_id: patientId,
@@ -379,7 +388,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
                 ast: labData.ast ?? null,
                 total_bilirubin: labData.total_bilirubin ?? null,
                 tacrolimus_level: labData.tacrolimus_level ?? null,
-                details: { flags },
+                details: { flags, explanations },
               });
 
               // Create alert if risk is high or medium
@@ -406,7 +415,6 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
           }
         }
       }
-
 
       await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `${t("upload.labUploadedEvent")} (${mergedGroups.length})` });
       logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: mergedGroups.length, totalFilled } });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateRisk, riskColorClass, daysSince, getAge } from "@/utils/risk";
+import { computeRiskScore } from "@/services/riskSnapshotService";
 
 describe("calculateRisk", () => {
   describe("liver", () => {
@@ -48,6 +49,80 @@ describe("calculateRisk", () => {
     it("returns low when all normal", () => {
       expect(calculateRisk("kidney", { creatinine: "1.0", egfr: "80" })).toBe("low");
     });
+  });
+});
+
+describe("computeRiskScore (advanced)", () => {
+  const baseLiverLab = {
+    tacrolimus_level: 8, alt: 30, ast: 25, total_bilirubin: 0.8,
+    creatinine: null, egfr: null, proteinuria: null, potassium: null,
+  } as any;
+
+  const baseKidneyLab = {
+    creatinine: 1.0, egfr: 80, potassium: 4.0, proteinuria: 0.1,
+    tacrolimus_level: 8, alt: null, ast: null, total_bilirubin: null,
+  } as any;
+
+  it("adds early post-transplant bonus when < 90 days", () => {
+    const recentDate = new Date();
+    recentDate.setDate(recentDate.getDate() - 30);
+    const result = computeRiskScore("liver", baseLiverLab, {
+      transplant_date: recentDate.toISOString().slice(0, 10),
+    });
+    expect(result.score).toBeGreaterThanOrEqual(10);
+    expect(result.explanations.some(e => e.key === "early_post_tx")).toBe(true);
+  });
+
+  it("does NOT add early post-transplant bonus when > 90 days", () => {
+    const oldDate = new Date();
+    oldDate.setDate(oldDate.getDate() - 200);
+    const result = computeRiskScore("liver", baseLiverLab, {
+      transplant_date: oldDate.toISOString().slice(0, 10),
+    });
+    expect(result.explanations.some(e => e.key === "early_post_tx")).toBe(false);
+  });
+
+  it("detects ALT rapid increase from previous lab", () => {
+    const prevLab = { ...baseLiverLab, alt: 50 };
+    const currentLab = { ...baseLiverLab, alt: 80 }; // +60%
+    const result = computeRiskScore("liver", currentLab, {}, prevLab);
+    expect(result.explanations.some(e => e.key === "alt_trend_up")).toBe(true);
+  });
+
+  it("detects creatinine rapid increase for kidney", () => {
+    const prevLab = { ...baseKidneyLab, creatinine: 1.0 };
+    const currentLab = { ...baseKidneyLab, creatinine: 1.5 }; // +50%
+    const result = computeRiskScore("kidney", currentLab, {}, prevLab);
+    expect(result.explanations.some(e => e.key === "cr_trend_up")).toBe(true);
+  });
+
+  it("detects multiple abnormal labs for kidney", () => {
+    const abnormalLab = { ...baseKidneyLab, creatinine: 2.0, egfr: 40, tacrolimus_level: 3 };
+    const result = computeRiskScore("kidney", abnormalLab, {});
+    expect(result.explanations.some(e => e.key === "multiple_abnormal")).toBe(true);
+  });
+
+  it("returns explanations array with each risk factor", () => {
+    const criticalLab = { ...baseLiverLab, alt: 200, tacrolimus_level: 3 };
+    const result = computeRiskScore("liver", criticalLab, {});
+    expect(result.explanations.length).toBeGreaterThanOrEqual(2);
+    expect(result.explanations.every(e => e.message && e.severity)).toBe(true);
+  });
+
+  it("caps score at 100", () => {
+    const extremeLab = {
+      tacrolimus_level: 1, alt: 300, ast: 300, total_bilirubin: 10,
+      creatinine: null, egfr: null, proteinuria: null, potassium: null,
+    } as any;
+    const prevLab = { ...extremeLab, alt: 50 };
+    const result = computeRiskScore("liver", extremeLab, { transplant_number: 3 }, prevLab);
+    expect(result.score).toBeLessThanOrEqual(100);
+  });
+
+  it("returns low for normal kidney labs", () => {
+    const result = computeRiskScore("kidney", baseKidneyLab, {});
+    expect(result.level).toBe("low");
+    expect(result.score).toBeLessThan(30);
   });
 });
 
