@@ -725,6 +725,8 @@ const translations: Record<Language, Record<string, string>> = {
     "med.unknownMed": "Неизвестный препарат",
     "med.myMedications": "Мои медикаменты",
     "patients.lowRisk": "Низкий риск",
+    "med.perMonth": "мес",
+    "upload.labUploadedEvent": "Лабораторный отчёт загружен через OCR",
   },
   uz: {
     "app.name": "TransplantCare",
