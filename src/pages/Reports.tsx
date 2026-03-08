@@ -24,6 +24,8 @@ const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning
 
 export default function Reports() {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [generating, setGenerating] = useState<number | null>(null);
   const monthlyData = useMonthlyData(t);
   const budgetData = [
     { name: t("reports.medications"), value: 45, amount: 2250000 },
@@ -39,6 +41,60 @@ export default function Reports() {
     { id: 4, name: t("reports.regionalDistribution"), date: "Oct 2024", type: "PDF", size: "3.2 MB" },
   ];
 
+  const generatePdf = (reportName: string, content: string[]) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text(reportName, 20, 25);
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleDateString(), 20, 33);
+    doc.setLineWidth(0.5);
+    doc.line(20, 36, 190, 36);
+    doc.setFontSize(12);
+    content.forEach((line, i) => {
+      doc.text(line, 20, 46 + i * 8);
+    });
+    doc.save(`${reportName.replace(/\s+/g, "_")}.pdf`);
+  };
+
+  const handleDownload = (report: typeof reports[0]) => {
+    setGenerating(report.id);
+    setTimeout(() => {
+      const content = monthlyData.map(
+        (d) => `${d.month}: ${t("reports.patients")} — ${d.patients}, ${t("reports.transplants")} — ${d.transplants}`
+      );
+      generatePdf(report.name, [
+        `${t("reports.availableReports")}: ${report.name}`,
+        `${t("common.date")}: ${report.date}`,
+        "",
+        ...content,
+        "",
+        ...budgetData.map((b) => `${b.name}: ${b.value}% — $${(b.amount / 1000000).toFixed(2)}M`),
+      ]);
+      setGenerating(null);
+      toast({ title: t("reports.downloaded") });
+    }, 600);
+  };
+
+  const handleGenerateNew = () => {
+    setGenerating(-1);
+    setTimeout(() => {
+      const today = new Date().toLocaleDateString();
+      generatePdf(`${t("reports.generateNew")} — ${today}`, [
+        `${t("reports.totalBudget")}: $5.0M`,
+        `${t("reports.spentYTD")}: $3.2M (64%)`,
+        `${t("reports.remaining")}: $1.8M (36%)`,
+        `${t("reports.patientsCovered")}: 12,458`,
+        "",
+        ...monthlyData.map(
+          (d) => `${d.month}: ${d.patients} ${t("reports.patients")}, ${d.transplants} ${t("reports.transplants")}`
+        ),
+        "",
+        ...budgetData.map((b) => `${b.name}: ${b.value}% ($${(b.amount / 1000000).toFixed(2)}M)`),
+      ]);
+      setGenerating(null);
+      toast({ title: t("reports.generated") });
+    }, 800);
+  };
   const budgetStats = [
     { label: t("reports.totalBudget"), value: "$5.0M", subtext: t("reports.annualAllocation"), icon: DollarSign, color: "text-primary" },
     { label: t("reports.spentYTD"), value: "$3.2M", subtext: "64%", icon: TrendingUp, color: "text-success" },
