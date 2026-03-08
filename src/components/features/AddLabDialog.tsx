@@ -71,7 +71,7 @@ export default function AddLabDialog({ patientId, organType, onLabAdded, patient
             patient_id: patientId,
             risk_snapshot_id: snapshot?.id ?? null,
             severity: "critical",
-            title: `Юқори хавф аниқланди (балл: ${score})`,
+            title: `${t("risk.highDetected")} (${score})`,
             message: flags.join("; "),
           });
         } else if (level === "medium") {
