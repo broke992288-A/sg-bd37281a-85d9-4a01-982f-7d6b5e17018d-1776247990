@@ -23,6 +23,7 @@ export default function PatientProfile() {
   const { data: allLabs = [] } = usePatientHomeLabs(patient?.id);
   const { data: timeline = [] } = usePatientHomeEvents(patient?.id);
   const { data: riskSnapshots = [] } = useRiskSnapshots(patient?.id);
+  const { data: medications = [] } = usePatientMedications(patient?.id);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState("overview");
 
