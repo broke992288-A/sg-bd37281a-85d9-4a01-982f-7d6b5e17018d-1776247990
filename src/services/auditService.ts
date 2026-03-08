@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type AuditAction =
+  | "user_login"
   | "patient_login"
   | "lab_upload"
   | "lab_result_edit"
