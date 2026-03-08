@@ -7,11 +7,12 @@ import { Camera, Upload, Loader2, CheckCircle2, Edit3, FileText, AlertTriangle, 
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { upsertLabResult } from "@/services/labService";
+import { upsertLabResult, fetchLabsByPatientId } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
 import { logAudit } from "@/services/auditService";
 import { computeRiskScore, insertRiskSnapshot } from "@/services/riskSnapshotService";
 import { insertPatientAlert } from "@/services/patientAlertService";
+import { preprocessLabImage } from "@/utils/imagePreprocess";
 import { preprocessLabImage } from "@/utils/imagePreprocess";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
