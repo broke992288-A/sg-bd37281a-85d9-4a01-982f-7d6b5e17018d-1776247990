@@ -46,21 +46,21 @@ export interface DemoProgress {
 }
 
 /** Insert rows in batches, returning inserted rows with ids */
-async function batchInsert<T extends Record<string, any>>(
-  table: string,
-  rows: T[],
+async function batchInsert(
+  table: "patients" | "lab_results" | "patient_alerts" | "medications",
+  rows: Record<string, any>[],
   batchSize: number,
   onBatch?: (done: number) => void,
 ): Promise<{ id: string }[]> {
   const allInserted: { id: string }[] = [];
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from(table)
       .insert(batch as any)
-      .select("id");
+      .select("id") as any);
     if (error) throw new Error(`${table} batch insert: ${error.message}`);
-    if (data) allInserted.push(...data);
+    if (data) allInserted.push(...(data as { id: string }[]));
     onBatch?.(Math.min(i + batchSize, rows.length));
   }
   return allInserted;
