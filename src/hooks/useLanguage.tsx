@@ -718,6 +718,7 @@ const translations: Record<Language, Record<string, string>> = {
     "med.as_needed": "По необходимости",
     "med.unknownMed": "Неизвестный препарат",
     "med.myMedications": "Мои медикаменты",
+    "patients.lowRisk": "Низкий риск",
   },
   uz: {
     "app.name": "TransplantCare",
