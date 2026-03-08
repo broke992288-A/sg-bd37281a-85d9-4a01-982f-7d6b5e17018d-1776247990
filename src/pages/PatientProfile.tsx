@@ -25,6 +25,7 @@ export default function PatientProfile() {
   const { data: timeline = [] } = usePatientHomeEvents(patient?.id);
   const { data: riskSnapshots = [] } = useRiskSnapshots(patient?.id);
   const { data: medications = [] } = usePatientMedications(patient?.id);
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
   const [tab, setTab] = useState(initialTab);
