@@ -1,4 +1,5 @@
-import { FileText, Download, Calendar, TrendingUp, Users, DollarSign, PieChart } from "lucide-react";
+import { useState } from "react";
+import { FileText, Download, Calendar, TrendingUp, Users, DollarSign, PieChart, Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell } from "recharts";
 import { useLanguage } from "@/hooks/useLanguage";
-
+import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
 function useMonthlyData(t: (key: string) => string) {
   return [
     { month: t("month.jan"), patients: 245, transplants: 12 },
@@ -22,6 +24,8 @@ const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning
 
 export default function Reports() {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [generating, setGenerating] = useState<number | null>(null);
   const monthlyData = useMonthlyData(t);
   const budgetData = [
     { name: t("reports.medications"), value: 45, amount: 2250000 },
@@ -37,6 +41,60 @@ export default function Reports() {
     { id: 4, name: t("reports.regionalDistribution"), date: "Oct 2024", type: "PDF", size: "3.2 MB" },
   ];
 
+  const generatePdf = (reportName: string, content: string[]) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text(reportName, 20, 25);
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleDateString(), 20, 33);
+    doc.setLineWidth(0.5);
+    doc.line(20, 36, 190, 36);
+    doc.setFontSize(12);
+    content.forEach((line, i) => {
+      doc.text(line, 20, 46 + i * 8);
+    });
+    doc.save(`${reportName.replace(/\s+/g, "_")}.pdf`);
+  };
+
+  const handleDownload = (report: typeof reports[0]) => {
+    setGenerating(report.id);
+    setTimeout(() => {
+      const content = monthlyData.map(
+        (d) => `${d.month}: ${t("reports.patients")} — ${d.patients}, ${t("reports.transplants")} — ${d.transplants}`
+      );
+      generatePdf(report.name, [
+        `${t("reports.availableReports")}: ${report.name}`,
+        `${t("common.date")}: ${report.date}`,
+        "",
+        ...content,
+        "",
+        ...budgetData.map((b) => `${b.name}: ${b.value}% — $${(b.amount / 1000000).toFixed(2)}M`),
+      ]);
+      setGenerating(null);
+      toast({ title: t("reports.downloaded") });
+    }, 600);
+  };
+
+  const handleGenerateNew = () => {
+    setGenerating(-1);
+    setTimeout(() => {
+      const today = new Date().toLocaleDateString();
+      generatePdf(`${t("reports.generateNew")} — ${today}`, [
+        `${t("reports.totalBudget")}: $5.0M`,
+        `${t("reports.spentYTD")}: $3.2M (64%)`,
+        `${t("reports.remaining")}: $1.8M (36%)`,
+        `${t("reports.patientsCovered")}: 12,458`,
+        "",
+        ...monthlyData.map(
+          (d) => `${d.month}: ${d.patients} ${t("reports.patients")}, ${d.transplants} ${t("reports.transplants")}`
+        ),
+        "",
+        ...budgetData.map((b) => `${b.name}: ${b.value}% ($${(b.amount / 1000000).toFixed(2)}M)`),
+      ]);
+      setGenerating(null);
+      toast({ title: t("reports.generated") });
+    }, 800);
+  };
   const budgetStats = [
     { label: t("reports.totalBudget"), value: "$5.0M", subtext: t("reports.annualAllocation"), icon: DollarSign, color: "text-primary" },
     { label: t("reports.spentYTD"), value: "$3.2M", subtext: "64%", icon: TrendingUp, color: "text-success" },
@@ -137,7 +195,9 @@ export default function Reports() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">{t("reports.availableReports")}</CardTitle>
-            <Button variant="outline" size="sm"><Calendar className="w-4 h-4 mr-2" />{t("reports.generateNew")}</Button>
+            <Button variant="outline" size="sm" onClick={handleGenerateNew} disabled={generating === -1}>
+              {generating === -1 ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calendar className="w-4 h-4 mr-2" />}{t("reports.generateNew")}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -148,7 +208,9 @@ export default function Reports() {
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><FileText className="w-5 h-5 text-primary" /></div>
                   <div><p className="font-medium text-foreground">{report.name}</p><p className="text-xs text-muted-foreground">{report.date} • {report.type} • {report.size}</p></div>
                 </div>
-                <Button variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDownload(report)} disabled={generating === report.id}>
+                  {generating === report.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                </Button>
               </div>
             ))}
           </div>
