@@ -41,9 +41,9 @@ export default function Patients() {
     <DashboardLayout>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.total}</p><p className="text-xs text-muted-foreground">{t("patients.total")}</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center"><Heart className="w-5 h-5 text-success" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.low}</p><p className="text-xs text-muted-foreground">Low Risk</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><Activity className="w-5 h-5 text-warning" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.medium}</p><p className="text-xs text-muted-foreground">Medium Risk</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-destructive" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.high}</p><p className="text-xs text-muted-foreground">High Risk</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center"><Heart className="w-5 h-5 text-success" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.low}</p><p className="text-xs text-muted-foreground">{t("patients.lowRisk")}</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center"><Activity className="w-5 h-5 text-warning" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.medium}</p><p className="text-xs text-muted-foreground">{t("dashboard.mediumRisk")}</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-destructive" /></div><div><p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.high}</p><p className="text-xs text-muted-foreground">{t("dashboard.highRisk")}</p></div></div></CardContent></Card>
       </div>
 
       <Card>
@@ -66,13 +66,13 @@ export default function Patients() {
               <SelectContent><SelectItem value="all">{t("patients.allOrgans")}</SelectItem><SelectItem value="kidney">{t("analytics.kidney")}</SelectItem><SelectItem value="liver">{t("analytics.liver")}</SelectItem></SelectContent>
             </Select>
             <Select value={riskFilter} onValueChange={setRiskFilter}>
-              <SelectTrigger className="w-32"><SelectValue placeholder="Risk" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low</SelectItem></SelectContent>
+              <SelectTrigger className="w-32"><SelectValue placeholder={t("dashboard.risk")} /></SelectTrigger>
+              <SelectContent><SelectItem value="all">{t("alerts.all")}</SelectItem><SelectItem value="high">{t("dashboard.highRisk")}</SelectItem><SelectItem value="medium">{t("dashboard.mediumRisk")}</SelectItem><SelectItem value="low">{t("patients.lowRisk")}</SelectItem></SelectContent>
             </Select>
           </div>
           <div className="overflow-x-auto">
             {loading ? (
-              <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>
+              <p className="text-muted-foreground text-sm py-8 text-center">{t("common.loading")}</p>
             ) : filteredPatients.length === 0 ? (
               <p className="text-muted-foreground text-sm py-8 text-center">{t("dashboard.noPatients")}</p>
             ) : (
@@ -83,7 +83,7 @@ export default function Patients() {
                     <TableHead>{t("patients.ageGender")}</TableHead>
                     <TableHead>{t("patients.organ")}</TableHead>
                     <TableHead>{t("patients.transplantDate")}</TableHead>
-                    <TableHead>Risk</TableHead>
+                    <TableHead>{t("dashboard.risk")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

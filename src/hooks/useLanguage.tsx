@@ -370,6 +370,7 @@ const translations: Record<Language, Record<string, string>> = {
     "med.as_needed": "As needed",
     "med.unknownMed": "Unknown medication",
     "med.myMedications": "My Medications",
+    "patients.lowRisk": "Low Risk",
   },
   ru: {
     "app.name": "TransplantCare",
@@ -717,6 +718,7 @@ const translations: Record<Language, Record<string, string>> = {
     "med.as_needed": "По необходимости",
     "med.unknownMed": "Неизвестный препарат",
     "med.myMedications": "Мои медикаменты",
+    "patients.lowRisk": "Низкий риск",
   },
   uz: {
     "app.name": "TransplantCare",
@@ -1064,6 +1066,7 @@ const translations: Record<Language, Record<string, string>> = {
     "med.as_needed": "Kerak bo'lganda",
     "med.unknownMed": "Noma'lum dori",
     "med.myMedications": "Mening dorilarim",
+    "patients.lowRisk": "Past xavf",
   },
 };
 
