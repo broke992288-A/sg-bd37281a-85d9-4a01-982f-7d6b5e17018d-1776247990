@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePaginatedPatients } from "@/hooks/usePatients";
 import { riskColorClass, getAge } from "@/utils/risk";
-import { SkeletonCard, SkeletonTable } from "@/components/ui/skeleton-card";
+import { SkeletonTable } from "@/components/ui/skeleton-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { PatientFilters } from "@/services/patientService";
 
 const PAGE_SIZE = 20;
