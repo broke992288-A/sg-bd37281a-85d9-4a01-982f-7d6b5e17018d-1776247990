@@ -69,12 +69,12 @@ export default function AddPatient() {
       }
       await insertLabResult(labData);
 
-      const txLabel = organ === "liver" ? "Liver" : "Kidney";
+      const txLabel = organ === "liver" ? t("organ.liver") : t("organ.kidney");
       const events: { patient_id: string; event_type: string; description: string; created_by: string }[] = [
-        { patient_id: patient.id, event_type: "transplant_added", description: `${txLabel} Tx #${form.transplant_number} added`, created_by: user.id },
+        { patient_id: patient.id, event_type: "transplant_added", description: `${txLabel} Tx #${form.transplant_number} — ${t("event.txAdded")}`, created_by: user.id },
       ];
       if (organ === "kidney" && form.dialysis_history === "yes") {
-        events.push({ patient_id: patient.id, event_type: "dialysis_recorded", description: "Return to dialysis recorded", created_by: user.id });
+        events.push({ patient_id: patient.id, event_type: "dialysis_recorded", description: t("event.dialysisRecorded"), created_by: user.id });
       }
       await insertEvents(events);
 
