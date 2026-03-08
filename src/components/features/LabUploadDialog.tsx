@@ -388,7 +388,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
                   patient_id: patientId,
                   risk_snapshot_id: snapshot?.id ?? null,
                   severity: "critical",
-                  title: `Юқори хавф аниқланди (балл: ${score})`,
+                  title: `${t("risk.highDetected")} (${score})`,
                   message: flags.join("; "),
                 });
               } else if (level === "medium") {
@@ -396,7 +396,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
                   patient_id: patientId,
                   risk_snapshot_id: snapshot?.id ?? null,
                   severity: "warning",
-                  title: `Ўртача хавф аниқланди (балл: ${score})`,
+                  title: `${t("risk.mediumDetected")} (${score})`,
                   message: flags.join("; "),
                 });
               }
@@ -408,7 +408,7 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
       }
 
 
-      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `Lab report uploaded via OCR (${mergedGroups.length} date(s))` });
+      await insertEvent({ patient_id: patientId, event_type: "lab_uploaded", description: `${t("upload.labUploadedEvent")} (${mergedGroups.length})` });
       logAudit({ action: "lab_upload", entityType: "patient", entityId: patientId, metadata: { dateCount: mergedGroups.length, totalFilled } });
       
       toast({ title: `${mergedGroups.length} ${t("upload.resultsSaved")}` });

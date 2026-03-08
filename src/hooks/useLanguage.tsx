@@ -197,6 +197,8 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.calculating": "Calculating...",
     "risk.noLabData": "No lab results entered",
     "risk.factors": "Risk factors:",
+    "risk.highDetected": "High risk detected",
+    "risk.mediumDetected": "Medium risk detected",
     // Patient Alerts
     "patientAlerts.title": "Alerts",
     "patientAlerts.markAllRead": "Mark all read",
@@ -371,6 +373,8 @@ const translations: Record<Language, Record<string, string>> = {
     "med.unknownMed": "Unknown medication",
     "med.myMedications": "My Medications",
     "patients.lowRisk": "Low Risk",
+    "med.perMonth": "mo",
+    "upload.labUploadedEvent": "Lab report uploaded via OCR",
   },
   ru: {
     "app.name": "TransplantCare",
@@ -555,6 +559,8 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.calculating": "Расчёт...",
     "risk.noLabData": "Результаты анализов не введены",
     "risk.factors": "Факторы риска:",
+    "risk.highDetected": "Обнаружен высокий риск",
+    "risk.mediumDetected": "Обнаружен средний риск",
     "patientAlerts.title": "Оповещения",
     "patientAlerts.markAllRead": "Отметить все прочитанными",
     "edit.title": "Редактировать данные пациента",
@@ -719,6 +725,8 @@ const translations: Record<Language, Record<string, string>> = {
     "med.unknownMed": "Неизвестный препарат",
     "med.myMedications": "Мои медикаменты",
     "patients.lowRisk": "Низкий риск",
+    "med.perMonth": "мес",
+    "upload.labUploadedEvent": "Лабораторный отчёт загружен через OCR",
   },
   uz: {
     "app.name": "TransplantCare",
@@ -903,6 +911,8 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.calculating": "Hisoblanmoqda...",
     "risk.noLabData": "Tahlil natijalari kiritilmagan",
     "risk.factors": "Xavf omillari:",
+    "risk.highDetected": "Yuqori xavf aniqlandi",
+    "risk.mediumDetected": "O'rta xavf aniqlandi",
     "patientAlerts.title": "Ogohlantirishlar",
     "patientAlerts.markAllRead": "Barchasini o'qildi",
     "edit.title": "Bemor ma'lumotlarini tahrirlash",
@@ -1067,6 +1077,8 @@ const translations: Record<Language, Record<string, string>> = {
     "med.unknownMed": "Noma'lum dori",
     "med.myMedications": "Mening dorilarim",
     "patients.lowRisk": "Past xavf",
+    "med.perMonth": "oy",
+    "upload.labUploadedEvent": "Lab hisoboti OCR orqali yuklandi",
   },
 };
 

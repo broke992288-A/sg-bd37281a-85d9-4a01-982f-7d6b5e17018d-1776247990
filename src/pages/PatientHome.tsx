@@ -85,17 +85,17 @@ export default function PatientHome() {
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           {patient.organ_type === "liver" ? (
                             <>
-                              {lab.tacrolimus_level != null && <span>Tacrolimus: <strong>{lab.tacrolimus_level}</strong></span>}
-                              {lab.alt != null && <span>ALT: <strong>{lab.alt}</strong></span>}
-                              {lab.ast != null && <span>AST: <strong>{lab.ast}</strong></span>}
-                              {lab.total_bilirubin != null && <span>Bilirubin: <strong>{lab.total_bilirubin}</strong></span>}
+                              {lab.tacrolimus_level != null && <span>{t("add.tacrolimus")}: <strong>{lab.tacrolimus_level}</strong></span>}
+                              {lab.alt != null && <span>{t("add.alt")}: <strong>{lab.alt}</strong></span>}
+                              {lab.ast != null && <span>{t("add.ast")}: <strong>{lab.ast}</strong></span>}
+                              {lab.total_bilirubin != null && <span>{t("add.totalBilirubin")}: <strong>{lab.total_bilirubin}</strong></span>}
                             </>
                           ) : (
                             <>
-                              {lab.creatinine != null && <span>Creatinine: <strong>{lab.creatinine}</strong></span>}
-                              {lab.egfr != null && <span>eGFR: <strong>{lab.egfr}</strong></span>}
-                              {lab.proteinuria != null && <span>Proteinuria: <strong>{lab.proteinuria}</strong></span>}
-                              {lab.potassium != null && <span>Potassium: <strong>{lab.potassium}</strong></span>}
+                              {lab.creatinine != null && <span>{t("add.creatinine")}: <strong>{lab.creatinine}</strong></span>}
+                              {lab.egfr != null && <span>{t("add.egfr")}: <strong>{lab.egfr}</strong></span>}
+                              {lab.proteinuria != null && <span>{t("add.proteinuria")}: <strong>{lab.proteinuria}</strong></span>}
+                              {lab.potassium != null && <span>{t("add.potassium")}: <strong>{lab.potassium}</strong></span>}
                             </>
                           )}
                         </div>

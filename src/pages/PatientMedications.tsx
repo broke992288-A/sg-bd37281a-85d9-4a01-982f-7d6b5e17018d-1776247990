@@ -16,6 +16,7 @@ import AddMedicationDialog from "@/components/features/AddMedicationDialog";
 import ChangeDosageDialog from "@/components/features/ChangeDosageDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PatientMedications() {
   const { t } = useLanguage();
@@ -25,6 +26,7 @@ export default function PatientMedications() {
   const { data: medications = [], isLoading: medsLoading } = usePatientMedications(id);
   const { data: changes = [] } = useMedicationChanges(id);
   const deleteMed = useDeleteMedication(id);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("active");
@@ -143,9 +145,7 @@ export default function PatientMedications() {
                                           try {
                                             const { updateMedication } = await import("@/services/medicationService");
                                             await updateMedication(med.id, { is_active: false, end_date: new Date().toISOString().slice(0, 10) } as any);
-                                            deleteMed.reset();
-                                            // Trigger refetch
-                                            window.location.reload();
+                                            queryClient.invalidateQueries({ queryKey: ["patient-medications", id] });
                                           } catch (err: any) {
                                             toast({ title: t("common.error"), description: err.message, variant: "destructive" });
                                           }

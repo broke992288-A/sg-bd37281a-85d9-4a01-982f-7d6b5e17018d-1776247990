@@ -132,7 +132,7 @@ export default function Alerts() {
                               {alert.patient_name && (
                                 <span
                                   className="font-medium text-foreground cursor-pointer hover:underline"
-                                  onClick={() => navigate(`/patients/${alert.patient_id}`)}
+                                  onClick={() => navigate(`/patient/${alert.patient_id}`)}
                                 >
                                   {alert.patient_name}
                                 </span>
