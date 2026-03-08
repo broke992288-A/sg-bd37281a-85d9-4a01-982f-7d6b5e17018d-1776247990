@@ -67,16 +67,16 @@ async function batchInsert(
 }
 
 /** Insert rows in batches without returning data (faster) */
-async function batchInsertNoReturn<T extends Record<string, any>>(
-  table: string,
-  rows: T[],
+async function batchInsertNoReturn(
+  table: "patients" | "lab_results" | "patient_alerts" | "medications",
+  rows: Record<string, any>[],
   batchSize: number,
   onBatch?: (done: number) => void,
 ): Promise<number> {
   let count = 0;
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    const { error } = await supabase.from(table).insert(batch as any);
+    const { error } = await (supabase.from(table).insert(batch as any) as any);
     if (!error) count += batch.length;
     onBatch?.(Math.min(i + batchSize, rows.length));
   }
