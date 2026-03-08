@@ -12,17 +12,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DateInputSeparate } from "@/components/features/DateInputSeparate";
+import { ValidatedInput, FormField } from "@/components/ui/form-field";
 import { insertPatient } from "@/services/patientService";
 import { insertLabResult } from "@/services/labService";
 import { insertEvents } from "@/services/eventService";
 import { calculateRisk } from "@/utils/risk";
 import { uzbekistanRegions } from "@/data/uzbekistanRegions";
+import { patientSchema, liverLabSchema, kidneyLabSchema } from "@/lib/validations";
 import type { OrganType } from "@/types/patient";
 
 export default function AddPatient() {
   const [step, setStep] = useState<1 | 2>(1);
   const [organ, setOrgan] = useState<OrganType | null>(null);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,7 +38,11 @@ export default function AddPatient() {
     potassium: "", biopsy_result: "", region: "", district: "",
   });
 
-  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    // Clear error on change
+    if (errors[key]) setErrors((prev) => { const n = { ...prev }; delete n[key]; return n; });
+  };
   const selectOrgan = (o: OrganType) => { setOrgan(o); setStep(2); };
 
   const selectedRegionData = useMemo(
@@ -45,11 +52,70 @@ export default function AddPatient() {
 
   const handleRegionChange = (v: string) => {
     setForm((prev) => ({ ...prev, region: v, district: "" }));
+    if (errors.region) setErrors((prev) => { const n = { ...prev }; delete n.region; return n; });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Validate patient fields
+    const patientResult = patientSchema.safeParse({
+      full_name: form.full_name,
+      date_of_birth: form.date_of_birth,
+      gender: form.gender,
+      region: form.region,
+      district: form.district,
+      transplant_number: form.transplant_number,
+      transplant_date: form.transplant_date,
+      biopsy_result: form.biopsy_result || undefined,
+    });
+
+    if (!patientResult.success) {
+      patientResult.error.errors.forEach((e) => {
+        const field = e.path[0]?.toString();
+        if (field && !newErrors[field]) newErrors[field] = e.message;
+      });
+    }
+
+    // Validate lab fields
+    if (organ === "liver") {
+      const labResult = liverLabSchema.safeParse({
+        tacrolimus_level: form.tacrolimus_level,
+        alt: form.alt,
+        ast: form.ast,
+        total_bilirubin: form.total_bilirubin,
+        direct_bilirubin: form.direct_bilirubin,
+      });
+      if (!labResult.success) {
+        labResult.error.errors.forEach((e) => {
+          const field = e.path[0]?.toString();
+          if (field && !newErrors[field]) newErrors[field] = e.message;
+        });
+      }
+    } else {
+      const labResult = kidneyLabSchema.safeParse({
+        creatinine: form.creatinine,
+        egfr: form.egfr,
+        proteinuria: form.proteinuria,
+        potassium: form.potassium,
+      });
+      if (!labResult.success) {
+        labResult.error.errors.forEach((e) => {
+          const field = e.path[0]?.toString();
+          if (field && !newErrors[field]) newErrors[field] = e.message;
+        });
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !organ) return;
+    if (!validateForm()) return;
+
     setSaving(true);
     try {
       const riskLevel = calculateRisk(organ, form);
@@ -139,10 +205,11 @@ export default function AddPatient() {
           <Card>
             <CardHeader><CardTitle className="text-lg">{t("add.patientInfo")}</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2"><Label>{t("add.fullName")} *</Label><Input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.dob")} *</Label><DateInputSeparate value={form.date_of_birth} onChange={(v) => set("date_of_birth", v)} yearRange={[1940, new Date().getFullYear()]} /></div>
-              <div className="space-y-2">
-                <Label>{t("add.gender")} *</Label>
+              <ValidatedInput label={t("add.fullName")} required error={errors.full_name} value={form.full_name} onChange={(e) => set("full_name", e.target.value)} wrapperClassName="sm:col-span-2" />
+              <FormField label={t("add.dob")} required error={errors.date_of_birth}>
+                <DateInputSeparate value={form.date_of_birth} onChange={(v) => set("date_of_birth", v)} yearRange={[1940, new Date().getFullYear()]} />
+              </FormField>
+              <FormField label={t("add.gender")} required error={errors.gender}>
                 <Select value={form.gender} onValueChange={(v) => set("gender", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -151,9 +218,8 @@ export default function AddPatient() {
                     <SelectItem value="other">{t("add.other")}</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("add.region")} *</Label>
+              </FormField>
+              <FormField label={t("add.region")} required error={errors.region}>
                 <Select value={form.region} onValueChange={handleRegionChange}>
                   <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
                   <SelectContent className="max-h-60">
@@ -162,9 +228,8 @@ export default function AddPatient() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("add.district")} *</Label>
+              </FormField>
+              <FormField label={t("add.district")} required error={errors.district}>
                 <Select value={form.district} onValueChange={(v) => set("district", v)} disabled={!form.region}>
                   <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
                   <SelectContent className="max-h-60">
@@ -173,39 +238,42 @@ export default function AddPatient() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle className="text-lg">{t("add.transplantDetails")}</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>{t("add.transplantNumber")} *</Label><Input type="number" min={1} value={form.transplant_number} onChange={(e) => set("transplant_number", e.target.value)} required /></div>
-              <div className="space-y-2"><Label>{t("add.transplantDate")} *</Label><DateInputSeparate value={form.transplant_date} onChange={(v) => set("transplant_date", v)} yearRange={[1990, new Date().getFullYear()]} /></div>
+              <ValidatedInput label={t("add.transplantNumber")} required error={errors.transplant_number} type="number" min={1} value={form.transplant_number} onChange={(e) => set("transplant_number", e.target.value)} />
+              <FormField label={t("add.transplantDate")} required error={errors.transplant_date}>
+                <DateInputSeparate value={form.transplant_date} onChange={(v) => set("transplant_date", v)} yearRange={[1990, new Date().getFullYear()]} />
+              </FormField>
               {organ === "liver" && (
-                <div className="space-y-2">
-                  <Label>{t("add.rejectionType")}</Label>
+                <FormField label={t("add.rejectionType")}>
                   <Select value={form.rejection_type} onValueChange={(v) => set("rejection_type", v)}>
                     <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
                     <SelectContent><SelectItem value="ACR">ACR</SelectItem><SelectItem value="AMR">AMR</SelectItem><SelectItem value="Chronic">Chronic</SelectItem><SelectItem value="Unknown">Unknown</SelectItem></SelectContent>
                   </Select>
-                </div>
+                </FormField>
               )}
               {organ === "kidney" && (
                 <>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label>{t("add.dialysisHistory")} *</Label>
+                    <Label>{t("add.dialysisHistory")} <span className="text-destructive">*</span></Label>
                     <RadioGroup value={form.dialysis_history} onValueChange={(v) => set("dialysis_history", v)} className="flex gap-4">
                       <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="dh-yes" /><Label htmlFor="dh-yes">{t("add.yes")}</Label></div>
                       <div className="flex items-center gap-2"><RadioGroupItem value="no" id="dh-no" /><Label htmlFor="dh-no">{t("add.no")}</Label></div>
                     </RadioGroup>
                   </div>
                   {form.dialysis_history === "yes" && (
-                    <div className="space-y-2"><Label>{t("add.returnDialysisDate")}</Label><DateInputSeparate value={form.return_dialysis_date} onChange={(v) => set("return_dialysis_date", v)} yearRange={[2000, new Date().getFullYear()]} /></div>
+                    <FormField label={t("add.returnDialysisDate")}>
+                      <DateInputSeparate value={form.return_dialysis_date} onChange={(v) => set("return_dialysis_date", v)} yearRange={[2000, new Date().getFullYear()]} />
+                    </FormField>
                   )}
                 </>
               )}
-              <div className="space-y-2 sm:col-span-2"><Label>{t("add.biopsyResult")}</Label><Input value={form.biopsy_result} onChange={(e) => set("biopsy_result", e.target.value)} placeholder={t("common.optional")} /></div>
+              <ValidatedInput label={t("add.biopsyResult")} error={errors.biopsy_result} value={form.biopsy_result} onChange={(e) => set("biopsy_result", e.target.value)} placeholder={t("common.optional")} wrapperClassName="sm:col-span-2" />
             </CardContent>
           </Card>
 
@@ -214,25 +282,25 @@ export default function AddPatient() {
             <CardContent className="grid gap-4 sm:grid-cols-2">
               {organ === "liver" ? (
                 <>
-                  <div className="space-y-2"><Label>{t("add.tacrolimus")} *</Label><Input type="number" step="0.1" value={form.tacrolimus_level} onChange={(e) => set("tacrolimus_level", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.alt")} *</Label><Input type="number" value={form.alt} onChange={(e) => set("alt", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.ast")} *</Label><Input type="number" value={form.ast} onChange={(e) => set("ast", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.totalBilirubin")} *</Label><Input type="number" step="0.1" value={form.total_bilirubin} onChange={(e) => set("total_bilirubin", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.directBilirubin")} *</Label><Input type="number" step="0.1" value={form.direct_bilirubin} onChange={(e) => set("direct_bilirubin", e.target.value)} required /></div>
+                  <ValidatedInput label={t("add.tacrolimus")} required error={errors.tacrolimus_level} type="number" step="0.1" value={form.tacrolimus_level} onChange={(e) => set("tacrolimus_level", e.target.value)} />
+                  <ValidatedInput label={t("add.alt")} required error={errors.alt} type="number" value={form.alt} onChange={(e) => set("alt", e.target.value)} />
+                  <ValidatedInput label={t("add.ast")} required error={errors.ast} type="number" value={form.ast} onChange={(e) => set("ast", e.target.value)} />
+                  <ValidatedInput label={t("add.totalBilirubin")} required error={errors.total_bilirubin} type="number" step="0.1" value={form.total_bilirubin} onChange={(e) => set("total_bilirubin", e.target.value)} />
+                  <ValidatedInput label={t("add.directBilirubin")} required error={errors.direct_bilirubin} type="number" step="0.1" value={form.direct_bilirubin} onChange={(e) => set("direct_bilirubin", e.target.value)} />
                 </>
               ) : (
                 <>
-                  <div className="space-y-2"><Label>{t("add.creatinine")} *</Label><Input type="number" step="0.1" value={form.creatinine} onChange={(e) => set("creatinine", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.egfr")} *</Label><Input type="number" value={form.egfr} onChange={(e) => set("egfr", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.proteinuria")} *</Label><Input type="number" step="0.1" value={form.proteinuria} onChange={(e) => set("proteinuria", e.target.value)} required /></div>
-                  <div className="space-y-2"><Label>{t("add.potassium")} *</Label><Input type="number" step="0.1" value={form.potassium} onChange={(e) => set("potassium", e.target.value)} required /></div>
+                  <ValidatedInput label={t("add.creatinine")} required error={errors.creatinine} type="number" step="0.1" value={form.creatinine} onChange={(e) => set("creatinine", e.target.value)} />
+                  <ValidatedInput label={t("add.egfr")} required error={errors.egfr} type="number" value={form.egfr} onChange={(e) => set("egfr", e.target.value)} />
+                  <ValidatedInput label={t("add.proteinuria")} required error={errors.proteinuria} type="number" step="0.1" value={form.proteinuria} onChange={(e) => set("proteinuria", e.target.value)} />
+                  <ValidatedInput label={t("add.potassium")} required error={errors.potassium} type="number" step="0.1" value={form.potassium} onChange={(e) => set("potassium", e.target.value)} />
                 </>
               )}
             </CardContent>
           </Card>
 
           <Button type="submit" className="w-full" disabled={saving}>
-            {saving && <Loader2 className="animate-spin" />}
+            {saving && <Loader2 className="animate-spin mr-1" />}
             {t("add.save")}
           </Button>
         </form>
