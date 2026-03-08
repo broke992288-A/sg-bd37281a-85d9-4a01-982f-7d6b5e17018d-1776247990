@@ -22,7 +22,7 @@ const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning
 
 export default function Reports() {
   const { t } = useLanguage();
-
+  const monthlyData = useMonthlyData(t);
   const budgetData = [
     { name: t("reports.medications"), value: 45, amount: 2250000 },
     { name: t("reports.equipment"), value: 20, amount: 1000000 },

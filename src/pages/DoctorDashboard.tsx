@@ -26,7 +26,7 @@ export default function DoctorDashboard() {
     { name: t("patients.lowRisk"), value: patients.length - highRisk.length - mediumRisk.length, color: "hsl(142, 71%, 35%)" },
   ].filter((d) => d.value > 0);
 
-  const riskBadge = (level: string) => <Badge className={riskColorClass(level)}>{level.toUpperCase()}</Badge>;
+  const riskBadge = (level: string) => <Badge className={riskColorClass(level)}>{t(`risk.${level}`)}</Badge>;
 
   const summaryCards = [
     { label: t("dashboard.totalPatients"), value: patients.length, icon: Users, color: "text-primary" },
