@@ -208,7 +208,9 @@ export default function Reports() {
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><FileText className="w-5 h-5 text-primary" /></div>
                   <div><p className="font-medium text-foreground">{report.name}</p><p className="text-xs text-muted-foreground">{report.date} • {report.type} • {report.size}</p></div>
                 </div>
-                <Button variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDownload(report)} disabled={generating === report.id}>
+                  {generating === report.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                </Button>
               </div>
             ))}
           </div>
