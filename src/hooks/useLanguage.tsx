@@ -416,6 +416,14 @@ const translations: Record<Language, Record<string, string>> = {
     "event.txAdded": "Transplant added",
     "event.dialysisRecorded": "Return to dialysis recorded",
     "event.riskOverridden": "Risk overridden",
+    // Date
+    "date.year": "Year",
+    "date.month": "Month",
+    "date.day": "Day",
+    "date.monthSuffix": "mo",
+    // Region
+    "add.region": "Region",
+    "add.district": "District",
     // Misc
     "add.selectPlaceholder": "Select...",
     "error.title": "Error",
