@@ -317,6 +317,12 @@ const translations: Record<Language, Record<string, string>> = {
     "medications.critical": "Critical",
     "medications.low": "Low",
     "medications.inStock": "In Stock",
+    "medications.activeLabel": "Active",
+    "medications.inactiveLabel": "Inactive",
+    "medications.dosages": "Dosages",
+    "medications.frequency": "Frequency",
+    "medications.noResults": "No results found",
+    "analytics.unknown": "Unknown",
     // Patients
     "patients.total": "Total Recipients",
     "patients.alive": "Alive",
