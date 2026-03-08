@@ -19,9 +19,17 @@ function severityToType(severity: string): string {
   return "warning";
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string) => string): string {
   try {
-    return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    const now = Date.now();
+    const diff = now - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return t("time.justNow");
+    if (minutes < 60) return `${minutes} ${t("time.minutesAgo")}`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} ${t("time.hoursAgo")}`;
+    const days = Math.floor(hours / 24);
+    return `${days} ${t("time.daysAgo")}`;
   } catch {
     return dateStr;
   }
