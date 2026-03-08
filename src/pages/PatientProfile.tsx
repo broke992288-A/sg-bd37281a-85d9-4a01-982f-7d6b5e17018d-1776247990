@@ -151,7 +151,7 @@ export default function PatientProfile() {
 
           {/* Lab Results */}
           <TabsContent value="results">
-            <LabResultsTable labs={allLabs} />
+            <LabHistoryTable labs={allLabs} organType={patient.organ_type} showAll />
           </TabsContent>
 
           {/* Trends */}
