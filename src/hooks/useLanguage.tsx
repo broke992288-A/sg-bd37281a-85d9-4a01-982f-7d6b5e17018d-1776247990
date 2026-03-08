@@ -1077,6 +1077,8 @@ const translations: Record<Language, Record<string, string>> = {
     "med.unknownMed": "Noma'lum dori",
     "med.myMedications": "Mening dorilarim",
     "patients.lowRisk": "Past xavf",
+    "med.perMonth": "oy",
+    "upload.labUploadedEvent": "Lab hisoboti OCR orqali yuklandi",
   },
 };
 
