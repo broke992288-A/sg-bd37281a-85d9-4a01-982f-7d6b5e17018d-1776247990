@@ -161,20 +161,15 @@ export default function DoctorDashboard() {
               <h2 className="text-lg font-semibold">{t("dashboard.predictions")}</h2>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              {[...highRisk, ...mediumRisk].slice(0, 4).map((p) => {
-                const labArray = labs[p.id] ? [labs[p.id]] : [];
-                // We pass only the latest lab as array — the edge function fetches history
-                return (
-                  <PredictionPanel
-                    key={p.id}
-                    patientId={p.id}
-                    patientName={p.full_name}
-                    organType={p.organ_type}
-                    currentRisk={p.risk_level}
-                    labs={labArray}
-                  />
-                );
-              })}
+              {[...highRisk, ...mediumRisk].slice(0, 4).map((p) => (
+                <PredictionPanel
+                  key={p.id}
+                  patientId={p.id}
+                  patientName={p.full_name}
+                  organType={p.organ_type}
+                  currentRisk={p.risk_level}
+                />
+              ))}
             </div>
           </div>
         )}
