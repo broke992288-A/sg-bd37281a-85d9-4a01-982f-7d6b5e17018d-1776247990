@@ -24,6 +24,8 @@ import { updatePatient, deletePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
 import { riskColorClass } from "@/utils/risk";
 import { logAudit } from "@/services/auditService";
+import { computeRiskScore } from "@/services/riskSnapshotService";
+import type { RiskSnapshot } from "@/services/riskSnapshotService";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
