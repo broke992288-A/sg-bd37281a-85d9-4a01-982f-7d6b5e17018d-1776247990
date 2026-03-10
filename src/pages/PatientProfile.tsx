@@ -141,7 +141,7 @@ export default function PatientProfile() {
                         <p className="text-xs text-muted-foreground mt-1">
                           {t(`med.${med.frequency}`)} · {t("med.startDate")}: {new Date(med.start_date).toLocaleDateString()}
                         </p>
-                        {med.notes && <p className="text-xs text-muted-foreground mt-0.5">{med.notes}</p>}
+                        {med.notes && <p className="text-xs text-muted-foreground mt-0.5"><TranslatedText text={med.notes} /></p>}
                       </div>
                     ))}
                   </div>
