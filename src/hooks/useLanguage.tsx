@@ -1271,6 +1271,9 @@ const translations: Record<Language, Record<string, string>> = {
     "error.networkError": "Tarmoq xatosi. Internet aloqasini tekshiring.",
     "error.unexpected": "Kutilmagan xatolik yuz berdi. Qayta urinib ko'ring.",
     "error.unknown": "Noma'lum xatolik yuz berdi.",
+    "translate.writtenIn": "Yozilgan til",
+    "translate.translating": "Tarjima qilinmoqda...",
+    "translate.noteLanguage": "Eslatma tili",
   },
 };
 
