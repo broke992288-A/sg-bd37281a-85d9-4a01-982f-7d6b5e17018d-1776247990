@@ -30,6 +30,7 @@ export default function AddMedicationDialog({ patientId }: Props) {
   const [frequency, setFrequency] = useState("daily");
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
+  const [notesLang, setNotesLang] = useState<string>(lang);
 
   const clearField = (field: string) => {
     if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
