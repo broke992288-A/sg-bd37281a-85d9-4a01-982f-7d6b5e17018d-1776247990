@@ -14,6 +14,7 @@ import LabHistoryTable from "@/components/features/LabHistoryTable";
 import EditPatientDialog from "@/components/features/EditPatientDialog";
 import RiskScoreCard from "@/components/features/RiskScoreCard";
 import PatientAlertsCard from "@/components/features/PatientAlertsCard";
+import PatientLabScheduleCard from "@/components/features/PatientLabScheduleCard";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -113,6 +114,7 @@ export default function PatientDetail() {
 
         <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
         <PatientAlertsCard patientId={patient.id} />
+        <PatientLabScheduleCard patientId={patient.id} />
 
         <Card>
           <CardHeader><CardTitle className="text-lg">{t("detail.patientInfo")}</CardTitle></CardHeader>

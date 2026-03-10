@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, FlaskConical, TrendingUp, TrendingDown, Minus, Phone, Calendar, User, Info } from "lucide-react";
+import PatientLabScheduleCard from "@/components/features/PatientLabScheduleCard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useLinkedPatient } from "@/hooks/usePatients";
@@ -49,6 +50,8 @@ export default function PatientHome() {
                 )}
               </CardContent>
             </Card>
+
+            {patient.id && <PatientLabScheduleCard patientId={patient.id} isPatientView />}
 
             {latestLab && (
               <Card>

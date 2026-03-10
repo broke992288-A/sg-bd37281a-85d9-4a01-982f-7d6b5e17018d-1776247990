@@ -13,6 +13,7 @@ import { SkeletonCard, SkeletonTable, SkeletonChart } from "@/components/ui/skel
 import { EmptyState } from "@/components/ui/empty-state";
 import PredictionPanel from "@/components/features/PredictionPanel";
 import PatientPriorityPanel from "@/components/features/PatientPriorityPanel";
+import OverdueLabsPanel from "@/components/features/OverdueLabsPanel";
 
 function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "—";
@@ -64,6 +65,9 @@ export default function DoctorDashboard() {
         {!loading && patients.length > 0 && (
           <PatientPriorityPanel patients={patients} labs={labs} />
         )}
+
+        {/* Overdue Labs Panel */}
+        {!loading && patients.length > 0 && <OverdueLabsPanel />}
 
         {/* Summary cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
