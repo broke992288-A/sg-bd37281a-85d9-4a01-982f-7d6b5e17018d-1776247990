@@ -53,6 +53,17 @@ function SeverityIcon({ severity }: { severity: string }) {
   return <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />;
 }
 
+function translateExplanation(exp: RiskExplanation, t: (key: string) => string): string {
+  const tKey = `risk.exp.${exp.key}`;
+  const template = t(tKey);
+  // If no translation found, fall back to English message
+  if (template === tKey) return exp.message;
+  return template
+    .replace("{value}", exp.value !== undefined ? String(exp.value) : "")
+    .replace("{threshold}", exp.threshold !== undefined ? String(exp.threshold) : "")
+    .replace("{change}", exp.change_pct !== undefined ? Math.abs(exp.change_pct).toFixed(0) : "");
+}
+
 export default function RiskScoreCard({ snapshot, prevSnapshot, loading }: RiskScoreCardProps) {
   const { t } = useLanguage();
 
@@ -144,7 +155,7 @@ export default function RiskScoreCard({ snapshot, prevSnapshot, loading }: RiskS
                 >
                   <SeverityIcon severity={exp.severity} />
                   <div className="flex-1 min-w-0">
-                    <p className="leading-snug">{exp.message}</p>
+                    <p className="leading-snug">{translateExplanation(exp, t)}</p>
                     {exp.change_pct !== undefined && (
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {exp.change_pct > 0 ? "↑" : "↓"} {Math.abs(exp.change_pct).toFixed(0)}% {t("risk.sinceLastTest")}
