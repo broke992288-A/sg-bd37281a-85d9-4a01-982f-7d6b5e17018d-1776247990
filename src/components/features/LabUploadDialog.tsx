@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { upsertLabResult, fetchLabsByPatientId } from "@/services/labService";
 import { insertEvent } from "@/services/eventService";
 import { logAudit } from "@/services/auditService";
-import { computeRiskScore, insertRiskSnapshot } from "@/services/riskSnapshotService";
+import { computeRiskScoreAsync, insertRiskSnapshot } from "@/services/riskSnapshotService";
 import { insertPatientAlert } from "@/services/patientAlertService";
 import { preprocessLabImage } from "@/utils/imagePreprocess";
 import { Badge } from "@/components/ui/badge";
