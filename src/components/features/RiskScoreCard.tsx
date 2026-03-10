@@ -128,7 +128,7 @@ export default function RiskScoreCard({ snapshot, prevSnapshot, loading }: RiskS
         {explanations.length > 0 ? (
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {t("risk.explanation") || "Why this risk level"}
+              {t("risk.explanation")}
             </p>
             <div className="space-y-2">
               {explanations.map((exp, i) => (
