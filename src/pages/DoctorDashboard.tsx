@@ -60,6 +60,11 @@ export default function DoctorDashboard() {
           <Button asChild><Link to="/add-patient"><Plus className="mr-1 h-4 w-4" /> {t("nav.addPatient")}</Link></Button>
         </div>
 
+        {/* Patient Priority System */}
+        {!loading && patients.length > 0 && (
+          <PatientPriorityPanel patients={patients} labs={labs} />
+        )}
+
         {/* Summary cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {loading

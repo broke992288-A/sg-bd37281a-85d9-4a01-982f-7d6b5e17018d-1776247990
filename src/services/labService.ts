@@ -5,11 +5,11 @@ export async function fetchLatestLabsByPatientIds(patientIds: string[]) {
   if (patientIds.length === 0) return {};
   const { data, error } = await supabase
     .from("lab_results")
-    .select("patient_id, tacrolimus_level, creatinine")
+    .select("patient_id, tacrolimus_level, creatinine, alt, ast, total_bilirubin, egfr, potassium, recorded_at")
     .in("patient_id", patientIds)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
-  const labMap: Record<string, { patient_id: string; tacrolimus_level: number | null; creatinine: number | null }> = {};
+  const labMap: Record<string, any> = {};
   data?.forEach((l) => {
     if (!labMap[l.patient_id]) labMap[l.patient_id] = l;
   });
