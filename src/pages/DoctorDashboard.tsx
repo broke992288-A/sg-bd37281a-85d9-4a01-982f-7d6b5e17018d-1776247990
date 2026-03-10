@@ -194,7 +194,7 @@ export default function DoctorDashboard() {
               <EmptyState
                 icon={UserPlus}
                 title={t("dashboard.noPatients")}
-                description={t("dashboard.addFirstPatient") || "Add your first patient"}
+                description={t("dashboard.addFirstPatient")}
                 actionLabel={t("nav.addPatient")}
                 onAction={() => navigate("/add-patient")}
               />
