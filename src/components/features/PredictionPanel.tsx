@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, BrainCircuit, TrendingUp, Clock, ShieldAlert, CheckCircle2, Loader2 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePrediction } from "@/hooks/usePrediction";
+import { useTranslatedText, useTranslatedTexts } from "@/hooks/useTranslate";
 
 interface PredictionPanelProps {
   patientId: string;
@@ -25,8 +26,23 @@ function riskIcon(level: string) {
 }
 
 export default function PredictionPanel({ patientId, patientName, organType, currentRisk, patientData }: PredictionPanelProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { data: prediction, isLoading, error } = usePrediction(patientId, organType, patientData);
+
+  // Translate AI-generated English text to current UI language
+  const needsTranslation = lang !== "en";
+  const { translated: translatedMessage, loading: msgLoading } = useTranslatedText(
+    needsTranslation ? prediction?.message : undefined,
+    needsTranslation ? "en" : undefined
+  );
+  const { translated: translatedTimeframe, loading: tfLoading } = useTranslatedText(
+    needsTranslation ? prediction?.timeframe : undefined,
+    needsTranslation ? "en" : undefined
+  );
+  const { translations: translatedReasons, loading: reasonsLoading } = useTranslatedTexts(
+    needsTranslation ? (prediction?.reasons ?? []) : [],
+    needsTranslation ? "en" : undefined
+  );
 
   if (isLoading) {
     return (
@@ -44,6 +60,11 @@ export default function PredictionPanel({ patientId, patientName, organType, cur
   }
 
   if (error || !prediction) return null;
+
+  const displayMessage = needsTranslation ? (msgLoading ? prediction.message : translatedMessage) : prediction.message;
+  const displayTimeframe = needsTranslation ? (tfLoading ? prediction.timeframe : translatedTimeframe) : prediction.timeframe;
+  const displayReasons = needsTranslation ? (reasonsLoading ? prediction.reasons : translatedReasons) : prediction.reasons;
+  const isTranslating = needsTranslation && (msgLoading || tfLoading || reasonsLoading);
 
   return (
     <Card className={`border-2 ${
@@ -83,21 +104,24 @@ export default function PredictionPanel({ patientId, patientName, organType, cur
 
         {/* Prediction Message */}
         <div className="rounded-lg border bg-background/80 p-3">
-          <p className="text-sm font-medium">{prediction.message}</p>
-          {prediction.timeframe && (
+          <p className="text-sm font-medium">
+            {displayMessage}
+            {isTranslating && <Loader2 className="inline-block ml-1 h-3 w-3 animate-spin text-muted-foreground" />}
+          </p>
+          {displayTimeframe && (
             <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              {t("prediction.timeframe")}: {prediction.timeframe}
+              {t("prediction.timeframe")}: {displayTimeframe}
             </div>
           )}
         </div>
 
         {/* Reasons */}
-        {prediction.reasons.length > 0 && (
+        {displayReasons.length > 0 && (
           <div>
             <p className="text-sm font-medium mb-2">{t("prediction.reasons")}:</p>
             <ul className="space-y-1">
-              {prediction.reasons.map((reason, i) => (
+              {displayReasons.map((reason, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-warning shrink-0" />
                   {reason}
