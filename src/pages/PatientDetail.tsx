@@ -170,7 +170,13 @@ export default function PatientDetail() {
           </div>
         )}
 
-        <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
+        <div className="space-y-2">
+          <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
+          <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating} className="w-full">
+            {recalculating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+            {t("detail.recalculateRisk")}
+          </Button>
+        </div>
         <PatientAlertsCard patientId={patient.id} />
         <PatientLabScheduleCard patientId={patient.id} />
 
