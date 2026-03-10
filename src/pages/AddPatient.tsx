@@ -279,6 +279,46 @@ export default function AddPatient() {
           </Card>
 
           <Card>
+            <CardHeader><CardTitle className="text-lg">{t("add.bloodInfo")}</CardTitle></CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <FormField label={t("add.bloodType")} required error={errors.blood_type}>
+                <Select value={form.blood_type} onValueChange={(v) => set("blood_type", v)}>
+                  <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
+                  <SelectContent>
+                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
+                      <SelectItem key={bt} value={bt}>{bt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField label={t("add.donorBloodType")}>
+                <Select value={form.donor_blood_type} onValueChange={(v) => set("donor_blood_type", v)}>
+                  <SelectTrigger><SelectValue placeholder={t("add.selectPlaceholder")} /></SelectTrigger>
+                  <SelectContent>
+                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
+                      <SelectItem key={bt} value={bt}>{bt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+              {form.donor_blood_type && form.blood_type && form.donor_blood_type !== form.blood_type && (
+                <div className="sm:col-span-2 space-y-2">
+                  <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning-foreground">
+                    ⚠️ {t("add.bloodMismatchWarning")}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("add.titerTherapy")} <span className="text-destructive">*</span></Label>
+                    <RadioGroup value={form.titer_therapy} onValueChange={(v) => set("titer_therapy", v)} className="flex gap-4">
+                      <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="tt-yes" /><Label htmlFor="tt-yes">{t("add.yes")}</Label></div>
+                      <div className="flex items-center gap-2"><RadioGroupItem value="no" id="tt-no" /><Label htmlFor="tt-no">{t("add.no")}</Label></div>
+                    </RadioGroup>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader><CardTitle className="text-lg">{t("add.labResults")}</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               {organ === "liver" ? (
