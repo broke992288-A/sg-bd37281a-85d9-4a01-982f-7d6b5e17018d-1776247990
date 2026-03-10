@@ -9,7 +9,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { patient_id, organ_type, labs } = await req.json();
+    const { patient_id, organ_type, labs, language = "en" } = await req.json();
+
+    const langInstruction = language === "uz"
+      ? "IMPORTANT: Write the message, reasons, and timeframe fields in Uzbek (O'zbek tili). Use medical terminology in Uzbek."
+      : language === "ru"
+      ? "IMPORTANT: Write the message, reasons, and timeframe fields in Russian (Русский). Use medical terminology in Russian."
+      : "Write the message, reasons, and timeframe fields in English.";
 
     if (!patient_id || !organ_type || !labs || labs.length < 2) {
       return new Response(JSON.stringify({
