@@ -53,6 +53,17 @@ function SeverityIcon({ severity }: { severity: string }) {
   return <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />;
 }
 
+function translateExplanation(exp: RiskExplanation, t: (key: string) => string): string {
+  const tKey = `risk.exp.${exp.key}`;
+  const template = t(tKey);
+  // If no translation found, fall back to English message
+  if (template === tKey) return exp.message;
+  return template
+    .replace("{value}", exp.value !== undefined ? String(exp.value) : "")
+    .replace("{threshold}", exp.threshold !== undefined ? String(exp.threshold) : "")
+    .replace("{change}", exp.change_pct !== undefined ? Math.abs(exp.change_pct).toFixed(0) : "");
+}
+
 export default function RiskScoreCard({ snapshot, prevSnapshot, loading }: RiskScoreCardProps) {
   const { t } = useLanguage();
 
