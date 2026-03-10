@@ -56,6 +56,9 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
         return_dialysis_date: returnDialysisDate || null,
         rejection_type: rejectionType || null,
         biopsy_result: biopsyResult || null,
+        blood_type: bloodType || null,
+        donor_blood_type: donorBloodType || null,
+        titer_therapy: titerTherapy,
       });
       toast({ title: t("edit.patientUpdated") });
       setOpen(false);
