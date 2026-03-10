@@ -1,17 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPrediction } from "@/services/predictionService";
 import { fetchLabsByPatientId } from "@/services/labService";
-import { useLanguage } from "@/hooks/useLanguage";
 
 export function usePrediction(
   patientId: string | undefined,
   organType: string | undefined,
   patientData?: { blood_type?: string | null; donor_blood_type?: string | null; titer_therapy?: boolean | null },
 ) {
-  const { lang } = useLanguage();
-
   return useQuery({
-    queryKey: ["prediction", patientId, lang],
+    // No language in key — prediction is always English, translated on client
+    queryKey: ["prediction", patientId],
     queryFn: async () => {
       const labs = await fetchLabsByPatientId(patientId!, 5);
       if (labs.length < 2) {
@@ -24,7 +22,8 @@ export function usePrediction(
         };
       }
       try {
-        return await fetchPrediction(patientId!, organType!, labs, lang, patientData);
+        // Always request in English for consistency
+        return await fetchPrediction(patientId!, organType!, labs, "en", patientData);
       } catch (err) {
         console.warn("Prediction fetch failed, returning fallback:", err);
         return {
