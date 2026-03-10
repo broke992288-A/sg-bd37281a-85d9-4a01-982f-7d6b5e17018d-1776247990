@@ -205,6 +205,36 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.factors": "Risk factors:",
     "risk.highDetected": "High risk detected",
     "risk.mediumDetected": "Medium risk detected",
+    "risk.explanation": "Why this risk level",
+    "risk.sinceLastTest": "since last test",
+    "risk.lastEvaluation": "Last evaluation",
+    // Time
+    "time.minAgo": "min ago",
+    "time.hourAgo": "h ago",
+    "time.dayAgo": "d ago",
+    // Priority reasons
+    "priority.highRisk": "High risk level (>80)",
+    "priority.mediumRisk": "Medium risk level",
+    "priority.highLevel": "High risk level",
+    "priority.newLab": "New lab uploaded (within 24h)",
+    "priority.notReviewed": "days not reviewed",
+    "priority.neverReviewed": "Never reviewed",
+    "priority.creatinineHigh": "Creatinine high",
+    "priority.egfrLow": "eGFR low",
+    "priority.potassiumAbnormal": "Potassium abnormal",
+    "priority.altHigh": "ALT high",
+    "priority.astHigh": "AST high",
+    "priority.tacrolimusAbnormal": "Tacrolimus abnormal",
+    "priority.bilirubinHigh": "Bilirubin high",
+    "priority.cat_critical": "Critical attention",
+    "priority.cat_review": "Needs review",
+    "priority.cat_stable": "Stable",
+    // Dashboard extras
+    "dashboard.allPatients": "All Patients",
+    // Schedule extras
+    "schedule.onSchedule": "On schedule",
+    // Prediction extras
+    "prediction.disclaimer": "This prediction is AI-assisted and should be reviewed by a healthcare professional.",
     // Patient Alerts
     "patientAlerts.title": "Alerts",
     "patientAlerts.markAllRead": "Mark all read",
