@@ -288,10 +288,17 @@ export async function insertRiskSnapshot(data: {
   total_bilirubin?: number | null;
   tacrolimus_level?: number | null;
   details?: Record<string, any>;
+  trend_flags?: string[];
+  algorithm_version?: string;
 }) {
+  const payload = {
+    ...data,
+    trend_flags: data.trend_flags ?? [],
+    algorithm_version: data.algorithm_version ?? CURRENT_ALGORITHM_VERSION,
+  };
   const { data: row, error } = await supabase
     .from("risk_snapshots")
-    .insert(data as any)
+    .insert(payload as any)
     .select()
     .single();
   if (error) throw error;
