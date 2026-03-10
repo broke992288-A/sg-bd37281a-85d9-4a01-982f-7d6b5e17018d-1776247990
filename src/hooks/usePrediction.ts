@@ -36,6 +36,6 @@ export function usePrediction(
     enabled: !!patientId && !!organType,
     staleTime: 10 * 60 * 1000,
     retry: 1,
-    meta: { suppressError: true },
+    meta: { skipGlobalError: true },
   });
 }
