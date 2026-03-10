@@ -856,6 +856,9 @@ const translations: Record<Language, Record<string, string>> = {
     "error.noInternet": "Нет подключения к интернету. Попробуйте снова.",
     "error.networkError": "Сетевая ошибка. Проверьте подключение.",
     "error.unexpected": "Произошла непредвиденная ошибка.",
+    "translate.writtenIn": "Написано на",
+    "translate.translating": "Переводим...",
+    "translate.noteLanguage": "Язык заметки",
     "error.unknown": "Неизвестная ошибка.",
   },
   uz: {
