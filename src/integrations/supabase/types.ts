@@ -524,6 +524,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_phone: { Args: { _phone: string }; Returns: string }
       register_patient_self: {
         Args: {
           _date_of_birth?: string
