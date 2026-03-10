@@ -152,7 +152,7 @@ export default function PatientProfile() {
 
           {/* Lab Results */}
           <TabsContent value="results">
-            <LabHistoryTable labs={allLabs} organType={patient.organ_type} showAll />
+            <LabHistoryTable labs={allLabs} organType={patient.organ_type} showAll editable onLabChanged={invalidate} />
           </TabsContent>
 
           {/* Trends */}
