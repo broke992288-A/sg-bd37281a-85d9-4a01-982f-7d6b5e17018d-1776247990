@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAddMedication } from "@/hooks/useMedications";
 import { ValidatedInput, FormField } from "@/components/ui/form-field";
 import { medicationSchema } from "@/lib/validations";
+import SourceLanguageSelect from "@/components/features/SourceLanguageSelect";
+import { encodeSourceLang } from "@/utils/langPrefix";
 
 interface Props {
   patientId: string;
