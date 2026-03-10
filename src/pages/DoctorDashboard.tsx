@@ -153,6 +153,32 @@ export default function DoctorDashboard() {
           </Card>
         </div>
 
+        {/* Prediction Panels for high/medium risk patients */}
+        {!loading && (highRisk.length > 0 || mediumRisk.length > 0) && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">{t("dashboard.predictions")}</h2>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {[...highRisk, ...mediumRisk].slice(0, 4).map((p) => {
+                const labArray = labs[p.id] ? [labs[p.id]] : [];
+                // We pass only the latest lab as array — the edge function fetches history
+                return (
+                  <PredictionPanel
+                    key={p.id}
+                    patientId={p.id}
+                    patientName={p.full_name}
+                    organType={p.organ_type}
+                    currentRisk={p.risk_level}
+                    labs={labArray}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* All patients table */}
         <Card>
           <CardHeader><CardTitle className="text-lg">{t("dashboard.totalPatients")}</CardTitle></CardHeader>
