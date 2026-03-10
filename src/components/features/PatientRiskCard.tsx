@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, HeartPulse, CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { Shield, HeartPulse, CheckCircle, Stethoscope, Info } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { RiskSnapshot } from "@/services/riskSnapshotService";
 
