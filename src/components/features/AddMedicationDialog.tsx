@@ -121,8 +121,14 @@ export default function AddMedicationDialog({ patientId }: Props) {
             value={startDate}
             onChange={(e) => { setStartDate(e.target.value); clearField("start_date"); }}
           />
-          <FormField label={`${t("med.notes")} (${t("common.optional")})`} error={errors.notes}>
-            <Textarea value={notes} onChange={(e) => { setNotes(e.target.value); clearField("notes"); }} rows={2} />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <FormField label={`${t("med.notes")} (${t("common.optional")})`} error={errors.notes}>
+                <Textarea value={notes} onChange={(e) => { setNotes(e.target.value); clearField("notes"); }} rows={2} />
+              </FormField>
+            </div>
+            <SourceLanguageSelect value={notesLang} onChange={setNotesLang} />
+          </div>
           </FormField>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
