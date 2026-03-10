@@ -685,6 +685,8 @@ const translations: Record<Language, Record<string, string>> = {
     "detail.riskApproved": "Риск утверждён",
     "detail.provideReason": "Укажите уровень риска и причину",
     "detail.riskOverridden": "Риск переопределён",
+    "detail.recalculateRisk": "Пересчитать риск",
+    "detail.riskRecalculated": "Риск пересчитан",
     "detail.addLab": "Добавить анализ",
     "detail.addNewLab": "Добавить новые результаты анализов",
     "detail.saveLab": "Сохранить результаты",
