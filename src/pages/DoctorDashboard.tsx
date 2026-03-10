@@ -123,7 +123,7 @@ export default function DoctorDashboard() {
                 <EmptyState
                   icon={AlertTriangle}
                   title={t("dashboard.noHighRisk")}
-                  description={t("dashboard.noHighRiskDesc") || "No high-risk patients currently"}
+                  description={t("dashboard.noHighRiskDesc")}
                 />
               ) : (
                 <Table>
