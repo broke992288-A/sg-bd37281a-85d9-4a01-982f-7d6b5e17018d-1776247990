@@ -98,18 +98,18 @@ export default function PatientPriorityPanel({ patients, labs }: Props) {
         {displayPatients.length === 0 ? (
           <EmptyState
             icon={CheckCircle}
-            title="Barcha bemorlar barqaror"
-            description="Hozirda zudlik talab qiladigan bemor yo'q"
+            title={t("dashboard.allStable")}
+            description={t("dashboard.noUrgent")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t("dashboard.patient") || "Bemor"}</TableHead>
-                <TableHead className="text-center">Ustuvorlik</TableHead>
-                <TableHead>{t("dashboard.risk") || "Xavf"}</TableHead>
-                <TableHead>Holat</TableHead>
-                <TableHead>Sabablar</TableHead>
+                <TableHead>{t("dashboard.patient")}</TableHead>
+                <TableHead className="text-center">{t("dashboard.priority")}</TableHead>
+                <TableHead>{t("dashboard.risk")}</TableHead>
+                <TableHead>{t("dashboard.status")}</TableHead>
+                <TableHead>{t("dashboard.reasons")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
