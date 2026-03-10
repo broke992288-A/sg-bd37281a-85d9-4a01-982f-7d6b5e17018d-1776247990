@@ -94,9 +94,12 @@ export default function ChangeDosageDialog({ medication }: Props) {
               </Select>
             </div>
           </div>
-          <div>
-            <Label>{t("med.reason")}</Label>
-            <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={t("med.reasonPlaceholder")} />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Label>{t("med.reason")}</Label>
+              <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={t("med.reasonPlaceholder")} />
+            </div>
+            <SourceLanguageSelect value={reasonLang} onChange={setReasonLang} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
