@@ -130,6 +130,8 @@ const translations: Record<Language, Record<string, string>> = {
     "detail.riskApproved": "Risk approved",
     "detail.provideReason": "Please provide a risk level and reason",
     "detail.riskOverridden": "Risk overridden",
+    "detail.recalculateRisk": "Recalculate Risk",
+    "detail.riskRecalculated": "Risk recalculated",
     "detail.addLab": "Add Lab",
     "detail.addNewLab": "Add New Lab Results",
     "detail.saveLab": "Save Lab Results",
