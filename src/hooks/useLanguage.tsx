@@ -1409,6 +1409,8 @@ const translations: Record<Language, Record<string, string>> = {
     "alerts.view": "Ko'rish",
     "alerts.noAlerts": "Ogohlantirishlar yo'q",
     "alerts.markRead": "O'qildi",
+    "alerts.markAllRead": "Barchasini o'qildi deb belgilash",
+    "alerts.allMarkedRead": "Barcha ogohlantirishlar o'qildi",
     "alerts.criticalLabResult": "Kritik tahlil natijasi",
     "alerts.medicationStockCritical": "Dori zahirasi kritik",
     "alerts.missedCheckin": "Dori qabuli o'tkazib yuborildi",
