@@ -33,6 +33,9 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
   const [returnDialysisDate, setReturnDialysisDate] = useState(patient.return_dialysis_date || "");
   const [rejectionType, setRejectionType] = useState(patient.rejection_type || "");
   const [biopsyResult, setBiopsyResult] = useState(patient.biopsy_result || "");
+  const [bloodType, setBloodType] = useState(patient.blood_type || "");
+  const [donorBloodType, setDonorBloodType] = useState(patient.donor_blood_type || "");
+  const [titerTherapy, setTiterTherapy] = useState(patient.titer_therapy || false);
 
   const handleSave = async () => {
     if (!fullName.trim()) {
