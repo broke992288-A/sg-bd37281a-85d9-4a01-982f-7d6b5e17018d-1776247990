@@ -1296,6 +1296,17 @@ const translations: Record<Language, Record<string, string>> = {
     "translate.writtenIn": "Yozilgan til",
     "translate.translating": "Tarjima qilinmoqda...",
     "translate.noteLanguage": "Eslatma tili",
+    "prediction.title": "Rad etish bashorati",
+    "prediction.analyzing": "Trendlar tahlil qilinmoqda...",
+    "prediction.currentRisk": "Joriy xavf",
+    "prediction.prediction": "Bashorat",
+    "prediction.timeframe": "Muddat",
+    "prediction.reasons": "Bashorat sabablari",
+    "prediction.noPrediction": "Bashorat uchun yetarli ma'lumot yo'q",
+    "prediction.patientNotice": "Shifokoringiz yaqinda laboratoriya natijalaringizni ko'rib chiqishi mumkin.",
+    "dashboard.predictions": "Rad etish bashoratlari",
+    "dashboard.noHighRiskDesc": "Hozirda yuqori xavfli bemorlar yo'q",
+    "dashboard.addFirstPatient": "Birinchi bemorni qo'shing",
   },
 };
 
