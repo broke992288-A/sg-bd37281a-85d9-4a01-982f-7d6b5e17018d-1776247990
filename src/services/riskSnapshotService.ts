@@ -306,24 +306,46 @@ export async function insertRiskSnapshot(data: {
 }
 
 export async function fetchRiskSnapshots(patientId: string, limit = 10) {
+  // Fetch snapshots with their linked lab's recorded_at for proper clinical ordering
   const { data, error } = await supabase
     .from("risk_snapshots")
-    .select("*")
+    .select("*, lab_results!risk_snapshots_lab_result_id_fkey(recorded_at)")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit * 2); // fetch extra to ensure we have enough after sorting
   if (error) throw error;
-  return (data ?? []) as RiskSnapshot[];
+
+  // Sort by lab recorded_at (clinically latest first), fall back to created_at
+  const sorted = (data ?? [])
+    .sort((a: any, b: any) => {
+      const aDate = a.lab_results?.recorded_at ?? a.created_at;
+      const bDate = b.lab_results?.recorded_at ?? b.created_at;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    })
+    .slice(0, limit)
+    .map(({ lab_results, ...rest }: any) => rest);
+
+  return sorted as RiskSnapshot[];
 }
 
 export async function fetchLatestRiskSnapshot(patientId: string) {
+  // Get the snapshot linked to the most recent lab by recorded_at
   const { data, error } = await supabase
     .from("risk_snapshots")
-    .select("*")
+    .select("*, lab_results!risk_snapshots_lab_result_id_fkey(recorded_at)")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(20);
   if (error) throw error;
-  return data as RiskSnapshot | null;
+  if (!data || data.length === 0) return null;
+
+  // Sort by lab recorded_at and pick the clinically latest
+  const sorted = data.sort((a: any, b: any) => {
+    const aDate = a.lab_results?.recorded_at ?? a.created_at;
+    const bDate = b.lab_results?.recorded_at ?? b.created_at;
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
+  });
+
+  const { lab_results, ...snapshot } = sorted[0] as any;
+  return snapshot as RiskSnapshot;
 }
