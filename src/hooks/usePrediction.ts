@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPrediction } from "@/services/predictionService";
 import { fetchLabsByPatientId } from "@/services/labService";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function usePrediction(
   patientId: string | undefined,
   organType: string | undefined,
 ) {
+  const { lang } = useLanguage();
+
   return useQuery({
-    queryKey: ["prediction", patientId],
+    queryKey: ["prediction", patientId, lang],
     queryFn: async () => {
       const labs = await fetchLabsByPatientId(patientId!, 5);
       if (labs.length < 2) {
@@ -20,7 +23,7 @@ export function usePrediction(
         };
       }
       try {
-        return await fetchPrediction(patientId!, organType!, labs);
+        return await fetchPrediction(patientId!, organType!, labs, lang);
       } catch (err) {
         console.warn("Prediction fetch failed, returning fallback:", err);
         return {
