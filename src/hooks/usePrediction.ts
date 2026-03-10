@@ -24,7 +24,7 @@ export function usePrediction(
         };
       }
       try {
-        return await fetchPrediction(patientId!, organType!, labs, lang);
+        return await fetchPrediction(patientId!, organType!, labs, lang, patientData);
       } catch (err) {
         console.warn("Prediction fetch failed, returning fallback:", err);
         return {

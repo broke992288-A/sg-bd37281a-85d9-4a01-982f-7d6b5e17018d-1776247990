@@ -131,6 +131,9 @@ export default function AddPatient() {
         biopsy_result: form.biopsy_result || null,
         region: form.region || null,
         district: form.district || null,
+        blood_type: form.blood_type || null,
+        donor_blood_type: form.donor_blood_type || null,
+        titer_therapy: form.titer_therapy === "yes",
       });
 
       const labData: any = { patient_id: patient.id };

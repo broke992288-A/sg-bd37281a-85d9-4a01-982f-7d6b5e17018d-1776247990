@@ -173,6 +173,38 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
             <Input value={biopsyResult} onChange={(e) => setBiopsyResult(e.target.value)} />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>{t("add.bloodType")}</Label>
+              <Select value={bloodType} onValueChange={setBloodType}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
+                    <SelectItem key={bt} value={bt}>{bt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{t("add.donorBloodType")}</Label>
+              <Select value={donorBloodType} onValueChange={setDonorBloodType}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
+                    <SelectItem key={bt} value={bt}>{bt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {donorBloodType && bloodType && donorBloodType !== bloodType && (
+            <div className="flex items-center gap-3">
+              <Switch checked={titerTherapy} onCheckedChange={setTiterTherapy} />
+              <Label>{t("add.titerTherapy")}</Label>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
             <Button onClick={handleSave} disabled={saving}>{saving ? "..." : t("common.save")}</Button>
