@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function ChangeDosageDialog({ medication }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();
   const changeDosage = useChangeDosage(medication.patient_id);
