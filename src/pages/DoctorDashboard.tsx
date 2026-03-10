@@ -186,7 +186,7 @@ export default function DoctorDashboard() {
 
         {/* All patients table */}
         <Card>
-          <CardHeader><CardTitle className="text-lg">{t("dashboard.totalPatients")}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t("dashboard.allPatients")}</CardTitle></CardHeader>
           <CardContent>
             {loading ? (
               <SkeletonTable rows={6} cols={4} />
