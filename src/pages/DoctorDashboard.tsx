@@ -12,6 +12,7 @@ import { riskColorClass, daysSince } from "@/utils/risk";
 import { SkeletonCard, SkeletonTable, SkeletonChart } from "@/components/ui/skeleton-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import PredictionPanel from "@/components/features/PredictionPanel";
+import PatientPriorityPanel from "@/components/features/PatientPriorityPanel";
 
 function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "—";
@@ -58,6 +59,11 @@ export default function DoctorDashboard() {
           <div><h1 className="text-2xl font-bold">{t("dashboard.title")}</h1><p className="text-muted-foreground">{t("dashboard.subtitle")}</p></div>
           <Button asChild><Link to="/add-patient"><Plus className="mr-1 h-4 w-4" /> {t("nav.addPatient")}</Link></Button>
         </div>
+
+        {/* Patient Priority System */}
+        {!loading && patients.length > 0 && (
+          <PatientPriorityPanel patients={patients} labs={labs} />
+        )}
 
         {/* Summary cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
