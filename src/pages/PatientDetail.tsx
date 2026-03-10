@@ -26,6 +26,8 @@ import { riskColorClass } from "@/utils/risk";
 import { logAudit } from "@/services/auditService";
 import { computeRiskScore } from "@/services/riskSnapshotService";
 import type { RiskSnapshot } from "@/services/riskSnapshotService";
+import { triggerRiskRecalculation } from "@/services/riskRecalculationService";
+import { RefreshCw, Loader2 } from "lucide-react";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -85,6 +87,21 @@ export default function PatientDetail() {
   const [overrideLevel, setOverrideLevel] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
   const [overriding, setOverriding] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalculate = async () => {
+    if (!id) return;
+    setRecalculating(true);
+    try {
+      const res = await triggerRiskRecalculation(id);
+      toast({ title: t("detail.riskRecalculated"), description: `${res.snapshots_created ?? 0} snapshot(s)` });
+      invalidateAll();
+    } catch (err: any) {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   const handleOverride = async () => {
     if (!user || !id || !overrideLevel || !overrideReason.trim()) {
@@ -153,7 +170,13 @@ export default function PatientDetail() {
           </div>
         )}
 
-        <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
+        <div className="space-y-2">
+          <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
+          <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating} className="w-full">
+            {recalculating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+            {t("detail.recalculateRisk")}
+          </Button>
+        </div>
         <PatientAlertsCard patientId={patient.id} />
         <PatientLabScheduleCard patientId={patient.id} />
 
