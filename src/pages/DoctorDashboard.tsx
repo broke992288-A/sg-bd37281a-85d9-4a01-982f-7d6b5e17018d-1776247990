@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, AlertTriangle, Activity, Plus, ShieldAlert, UserPlus, Clock } from "lucide-react";
+import { Users, AlertTriangle, Activity, Plus, ShieldAlert, UserPlus, Clock, BrainCircuit } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -11,6 +11,7 @@ import { useDoctorPatientsWithLabs } from "@/hooks/usePatients";
 import { riskColorClass, daysSince } from "@/utils/risk";
 import { SkeletonCard, SkeletonTable, SkeletonChart } from "@/components/ui/skeleton-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import PredictionPanel from "@/components/features/PredictionPanel";
 
 function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "—";
