@@ -6,6 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 export function usePrediction(
   patientId: string | undefined,
   organType: string | undefined,
+  patientData?: { blood_type?: string | null; donor_blood_type?: string | null; titer_therapy?: boolean | null },
 ) {
   const { lang } = useLanguage();
 
