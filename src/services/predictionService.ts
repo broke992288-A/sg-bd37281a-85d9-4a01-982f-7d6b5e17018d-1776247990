@@ -13,10 +13,11 @@ export interface PredictionResult {
 export async function fetchPrediction(
   patientId: string,
   organType: string,
-  labs: any[]
+  labs: any[],
+  language: string = "en"
 ): Promise<PredictionResult> {
   const { data, error } = await supabase.functions.invoke("predict-rejection", {
-    body: { patient_id: patientId, organ_type: organType, labs },
+    body: { patient_id: patientId, organ_type: organType, labs, language },
   });
 
   if (error) throw error;

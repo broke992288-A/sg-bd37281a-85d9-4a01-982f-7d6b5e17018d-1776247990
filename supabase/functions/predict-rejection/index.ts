@@ -9,7 +9,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { patient_id, organ_type, labs } = await req.json();
+    const { patient_id, organ_type, labs, language = "en" } = await req.json();
+
+    const langInstruction = language === "uz"
+      ? "IMPORTANT: Write the message, reasons, and timeframe fields in Uzbek (O'zbek tili). Use medical terminology in Uzbek."
+      : language === "ru"
+      ? "IMPORTANT: Write the message, reasons, and timeframe fields in Russian (Русский). Use medical terminology in Russian."
+      : "Write the message, reasons, and timeframe fields in English.";
 
     if (!patient_id || !organ_type || !labs || labs.length < 2) {
       return new Response(JSON.stringify({
@@ -42,6 +48,8 @@ RULES:
 - For KIDNEY: Watch for rising creatinine, declining eGFR, increasing proteinuria, abnormal potassium
 - Consider rate of change, not just absolute values
 - A consistent worsening trend across 3+ tests is more concerning than a single abnormal value
+
+${langInstruction}
 
 You MUST respond using the predict_rejection tool.`;
 
