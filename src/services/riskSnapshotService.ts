@@ -234,43 +234,24 @@ export async function insertRiskSnapshot(data: {
 }
 
 export async function fetchRiskSnapshots(patientId: string, limit = 10) {
-  // Join with lab_results to order by the lab's recorded_at (not snapshot created_at)
-  // This ensures the latest LAB's snapshot appears first, even if an older lab's snapshot was re-created later
   const { data, error } = await supabase
     .from("risk_snapshots")
-    .select("*, lab_results!risk_snapshots_lab_result_id_fkey(recorded_at)")
+    .select("*")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
-    .limit(limit * 2); // fetch extra to deduplicate
+    .limit(limit);
   if (error) throw error;
-
-  // Sort by lab recorded_at (descending), then by created_at (descending) for same lab
-  const rows = (data ?? []) as (RiskSnapshot & { lab_results?: { recorded_at: string } | null })[];
-  rows.sort((a, b) => {
-    const aDate = a.lab_results?.recorded_at ?? a.created_at;
-    const bDate = b.lab_results?.recorded_at ?? b.created_at;
-    const diff = new Date(bDate).getTime() - new Date(aDate).getTime();
-    if (diff !== 0) return diff;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
-
-  // Deduplicate: keep only latest snapshot per lab_result_id
-  const seen = new Set<string>();
-  const unique: RiskSnapshot[] = [];
-  for (const row of rows) {
-    const key = row.lab_result_id ?? row.id;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    // Strip joined data before returning
-    const { lab_results: _, ...snapshot } = row as any;
-    unique.push(snapshot);
-    if (unique.length >= limit) break;
-  }
-
-  return unique;
+  return (data ?? []) as RiskSnapshot[];
 }
 
 export async function fetchLatestRiskSnapshot(patientId: string) {
-  const snapshots = await fetchRiskSnapshots(patientId, 1);
-  return snapshots[0] ?? null;
+  const { data, error } = await supabase
+    .from("risk_snapshots")
+    .select("*")
+    .eq("patient_id", patientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data as RiskSnapshot | null;
 }
