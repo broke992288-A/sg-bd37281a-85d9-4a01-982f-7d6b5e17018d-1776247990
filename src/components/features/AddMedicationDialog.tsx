@@ -63,7 +63,7 @@ export default function AddMedicationDialog({ patientId }: Props) {
         frequency,
         start_date: startDate,
         prescribed_by: user?.id ?? null,
-        notes: notes.trim() || null,
+        notes: notes.trim() ? encodeSourceLang(notes.trim(), notesLang) : null,
       });
       toast({ title: t("med.added") });
       setOpen(false);
