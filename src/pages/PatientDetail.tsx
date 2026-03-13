@@ -205,7 +205,7 @@ export default function PatientDetail() {
           </CardHeader>
           <CardContent>
             {latestLab ? (
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
                 {patient.organ_type === "liver" ? (
                   <>
                     <LabItem label={t("add.tacrolimus")} value={latestLab.tacrolimus_level} />

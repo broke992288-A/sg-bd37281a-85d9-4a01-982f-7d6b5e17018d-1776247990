@@ -49,9 +49,9 @@ export default function PatientAlertsCard({ patientId }: PatientAlertsCardProps)
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Bell className="h-5 w-5 text-destructive" />
+          <Bell className="h-5 w-5 text-destructive shrink-0" />
           {t("patientAlerts.title")}
           {unread.length > 0 && (
             <Badge variant="destructive" className="ml-1">{unread.length}</Badge>
