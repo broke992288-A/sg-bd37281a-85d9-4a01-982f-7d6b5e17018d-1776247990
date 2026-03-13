@@ -4,8 +4,9 @@ import type { OrganType, RiskLevel } from "@/types/patient";
  * Deterministic risk calculation with organ-specific algorithms.
  * Returns a RiskLevel based on a normalized 0-100 scoring system.
  *
- * LIVER MODEL: ALT, AST, Total Bilirubin, Direct Bilirubin, Tacrolimus, Transplant #, Days post-Tx
+ * LIVER MODEL: ALT, AST, Total Bilirubin, Direct Bilirubin, GGT, ALP, Tacrolimus, Transplant #, Days post-Tx
  * KIDNEY MODEL: Creatinine, eGFR, Proteinuria, Potassium, Tacrolimus, Dialysis history, Days post-Tx
+ * FUTURE KIDNEY MARKERS: BK virus, CMV, Donor-specific antibodies (DSA)
  */
 export function calculateRisk(organ: OrganType, data: Record<string, any>): RiskLevel {
   const score = calculateRiskScore(organ, data);
