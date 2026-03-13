@@ -125,7 +125,7 @@ export default function PatientDetail() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-4 overflow-hidden">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
@@ -196,16 +196,16 @@ export default function PatientDetail() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-primary" />
+              <FlaskConical className="h-5 w-5 text-primary shrink-0" />
               <CardTitle className="text-lg">{t("detail.latestLabs")}</CardTitle>
             </div>
             <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date }} />
           </CardHeader>
           <CardContent>
             {latestLab ? (
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
                 {patient.organ_type === "liver" ? (
                   <>
                     <LabItem label={t("add.tacrolimus")} value={latestLab.tacrolimus_level} />
