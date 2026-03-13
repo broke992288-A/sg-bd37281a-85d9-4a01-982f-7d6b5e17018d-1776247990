@@ -53,6 +53,8 @@ function liverRiskModel(data: Record<string, any>): number {
   const tac = parseFloat(data.tacrolimus_level) || 0;
   const bili = parseFloat(data.total_bilirubin) || 0;
   const dbili = parseFloat(data.direct_bilirubin) || 0;
+  const ggt = parseFloat(data.ggt) || 0;
+  const alp = parseFloat(data.alp) || 0;
 
   // ALT thresholds (U/L) — AASLD 2023
   if (alt > 120) pts += 25;
@@ -69,6 +71,14 @@ function liverRiskModel(data: Record<string, any>): number {
   // Direct Bilirubin (mg/dL)
   if (dbili > 1.5) pts += 10;
   else if (dbili > 0.5) pts += 5;
+
+  // GGT (U/L) — biliary/cholestatic rejection marker
+  if (ggt > 200) pts += 15;
+  else if (ggt > 60) pts += 8;
+
+  // ALP (U/L) — biliary obstruction/rejection marker
+  if (alp > 300) pts += 15;
+  else if (alp > 120) pts += 8;
 
   // Tacrolimus (ng/mL) — ISHLT 2023
   if (tac > 0) {
