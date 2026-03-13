@@ -185,9 +185,9 @@ export default function Analytics() {
 
       <Card className="mb-6">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2"><Building2 className="w-5 h-5 text-primary" /><CardTitle className="text-base font-semibold">{t("analytics.centerComparison")}</CardTitle></div>
-            <Button variant="outline" size="sm" onClick={handleExportCSV}><Download className="w-4 h-4 mr-2" />CSV</Button>
+            <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={handleExportCSV}><Download className="w-4 h-4 mr-2" />CSV</Button>
           </div>
         </CardHeader>
         <CardContent>
