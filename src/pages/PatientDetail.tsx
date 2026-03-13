@@ -125,7 +125,7 @@ export default function PatientDetail() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-4 overflow-hidden">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
