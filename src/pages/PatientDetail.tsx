@@ -196,9 +196,9 @@ export default function PatientDetail() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-primary" />
+              <FlaskConical className="h-5 w-5 text-primary shrink-0" />
               <CardTitle className="text-lg">{t("detail.latestLabs")}</CardTitle>
             </div>
             <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date }} />
