@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 // ─── CORS: Restrict to app domains ───
 const ALLOWED_ORIGINS = [
@@ -147,6 +148,10 @@ serve(async (req) => {
   const authResult = await authenticateRequest(req, corsHeaders);
   if (authResult instanceof Response) return authResult;
   const { userId } = authResult;
+
+  // Rate limit: 20 OCR requests per user per 10 minutes
+  const rl = checkRateLimit(userId, { maxRequests: 20, windowMs: 10 * 60 * 1000, functionName: FN_NAME });
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

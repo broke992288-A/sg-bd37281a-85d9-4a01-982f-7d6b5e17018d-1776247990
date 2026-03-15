@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const ALLOWED_ORIGINS = [
   "https://id-preview--3d6f8975-c3ff-446b-91f6-07f7ec886943.lovable.app",
@@ -47,6 +48,10 @@ serve(async (req) => {
   const authResult = await authenticateRequest(req, corsHeaders);
   if (authResult instanceof Response) return authResult;
   const { userId } = authResult;
+
+  // Rate limit: 10 predictions per user per 5 minutes
+  const rl = checkRateLimit(userId, { maxRequests: 10, windowMs: 5 * 60 * 1000, functionName: FN_NAME });
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const { patient_id, organ_type, labs, language = "en", patient_data } = await req.json();
