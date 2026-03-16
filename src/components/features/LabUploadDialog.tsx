@@ -422,8 +422,8 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
             }
           }
 
-          // Update prevLab for next iteration
-          lastSavedLab = savedLab;
+          // Update rolling history for next iteration
+          historicalWindow = [savedLab, ...historicalWindow.filter((lab) => lab.id !== savedLab.id)].slice(0, 4);
         }
       }
 

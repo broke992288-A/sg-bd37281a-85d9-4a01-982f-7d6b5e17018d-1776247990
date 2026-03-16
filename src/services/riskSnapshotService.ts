@@ -297,6 +297,7 @@ export function computeRiskScore(
   let score = 0;
   const flags: string[] = [];
   const explanations: RiskExplanation[] = [];
+  const trendHistory = normalizeHistoricalLabs(historicalLabs);
 
   const tac = lab.tacrolimus_level ?? 0;
   const cr = lab.creatinine ?? 0;
