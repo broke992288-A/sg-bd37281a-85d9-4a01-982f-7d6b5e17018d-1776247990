@@ -362,7 +362,7 @@ async function generateDoc(variant: Variant) {
 
     /* ═══ 8 ═══ */
     section(8, "MA'LUMOTLAR BAZASI DIZAYNI"),
-    sub("Jadvallar ro'yxati (12 ta)"),
+    sub("Jadvallar ro'yxati (13 ta)"),
     table(
       ["Jadval nomi", "Taxminiy qatorlar", "Vazifasi"],
       [
@@ -376,6 +376,7 @@ async function generateDoc(variant: Variant) {
         ["patient_events", "~500+", "Bemor hodisalari logi"],
         ["lab_schedules", "~200+", "Laboratoriya jadvallari"],
         ["clinical_thresholds", "~50+", "Klinik chegaralar (KDIGO/BANFF)"],
+        ["transplant_episodes", "~50+", "Transplant episodlari (ko'p operatsiya tarixi)"],
         ["audit_logs", "~1000+", "Tizim audit loglari"],
         ["user_roles", "~50+", "Foydalanuvchi rollari"],
       ],
