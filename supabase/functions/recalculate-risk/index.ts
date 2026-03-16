@@ -216,7 +216,9 @@ serve(async (req) => {
           }
           if (threshold.trend_threshold_pct != null && prevWindow.length > 0) {
             const previousValues = prevWindow
-              .map((prevLab) => prevLab[threshold.parameter as string] as number | null)
+              .map((prevLab) => threshold.parameter === "tacrolimus"
+                ? (prevLab.tacrolimus_level as number | null)
+                : (prevLab[threshold.parameter as string] as number | null))
               .filter((prevValue): prevValue is number => prevValue != null && prevValue > 0);
 
             if (previousValues.length > 0 && value > 0) {
