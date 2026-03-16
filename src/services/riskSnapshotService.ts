@@ -37,6 +37,79 @@ function pctChange(prev: number, curr: number): number {
   return ((curr - prev) / prev) * 100;
 }
 
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+type HistoricalLabInput = LabResult | LabResult[] | null | undefined;
+
+function normalizeHistoricalLabs(historicalLabs: HistoricalLabInput): LabResult[] {
+  if (!historicalLabs) return [];
+  const labs = (Array.isArray(historicalLabs) ? historicalLabs : [historicalLabs]).filter(Boolean);
+  return labs.slice(0, 4);
+}
+
+function getLabMetricValue(lab: Partial<LabResult> | null | undefined, parameter: string): number | null {
+  if (!lab) return null;
+
+  const metricMap: Record<string, number | null | undefined> = {
+    tacrolimus: lab.tacrolimus_level,
+    alt: lab.alt,
+    ast: lab.ast,
+    total_bilirubin: lab.total_bilirubin,
+    direct_bilirubin: lab.direct_bilirubin,
+    creatinine: lab.creatinine,
+    egfr: lab.egfr,
+    potassium: lab.potassium,
+    proteinuria: lab.proteinuria,
+    hb: lab.hb,
+    albumin: lab.albumin,
+    platelets: lab.platelets,
+    inr: lab.inr,
+    alp: lab.alp,
+    ggt: lab.ggt,
+    crp: lab.crp,
+  };
+
+  const value = metricMap[parameter];
+  return typeof value === "number" ? value : value ?? null;
+}
+
+function getWindowTrendSignal(
+  currentValue: number,
+  historicalLabs: LabResult[],
+  parameter: string,
+  thresholdPct: number,
+  trendDirection: string | null
+) {
+  if (currentValue <= 0 || !trendDirection) return null;
+
+  const previousValues = historicalLabs
+    .map((lab) => getLabMetricValue(lab, parameter))
+    .filter((value): value is number => typeof value === "number" && value > 0)
+    .slice(0, 4);
+
+  if (previousValues.length === 0) return null;
+
+  const baseline = median(previousValues);
+  const change_pct = pctChange(baseline, currentValue);
+  const trendUp = trendDirection === "up" && change_pct >= thresholdPct;
+  const trendDown = trendDirection === "down" && change_pct <= -thresholdPct;
+
+  if (!trendUp && !trendDown) return null;
+
+  return {
+    baseline,
+    change_pct,
+    direction: trendUp ? "increased" : "decreased",
+    sample_count: previousValues.length,
+  };
+}
+
 /** Days between a date string and now */
 function daysSinceDate(dateStr: string | null | undefined): number | null {
   if (!dateStr) return null;
@@ -64,7 +137,7 @@ export async function computeRiskScoreAsync(
     dialysis_history?: boolean | null;
     transplant_date?: string | null;
   },
-  prevLab?: LabResult | null
+  historicalLabs?: HistoricalLabInput
 ): Promise<{ score: number; level: string; flags: string[]; explanations: RiskExplanation[] }> {
   let thresholds: ClinicalThreshold[] = [];
   try {
@@ -77,11 +150,11 @@ export async function computeRiskScoreAsync(
 
   // If we have DB thresholds, use them; otherwise fall back to sync version
   if (organThresholds.length > 0) {
-    return computeRiskWithDbThresholds(organType, lab, patient, prevLab, organThresholds);
+    return computeRiskWithDbThresholds(organType, lab, patient, historicalLabs, organThresholds);
   }
 
   // Fallback to hardcoded
-  return computeRiskScore(organType, lab, patient, prevLab);
+  return computeRiskScore(organType, lab, patient, historicalLabs);
 }
 
 function getThresholdFor(thresholds: ClinicalThreshold[], param: string): ClinicalThreshold | undefined {
@@ -92,12 +165,13 @@ function computeRiskWithDbThresholds(
   organType: string,
   lab: LabResult,
   patient: { transplant_number?: number | null; dialysis_history?: boolean | null; transplant_date?: string | null },
-  prevLab: LabResult | null | undefined,
+  historicalLabs: HistoricalLabInput,
   thresholds: ClinicalThreshold[]
 ): { score: number; level: string; flags: string[]; explanations: RiskExplanation[] } {
   let score = 0;
   const flags: string[] = [];
   const explanations: RiskExplanation[] = [];
+  const trendHistory = normalizeHistoricalLabs(historicalLabs);
 
   // --- Time since transplant ---
   const daysSinceTx = daysSinceDate(patient.transplant_date);
@@ -155,27 +229,21 @@ function computeRiskWithDbThresholds(
       });
     }
 
-    // Trend analysis
-    if (prevLab && threshold.trend_threshold_pct != null) {
-      const prevValue = prevLab[threshold.parameter as keyof LabResult] as number | null;
-      if (prevValue != null && prevValue > 0 && value > 0) {
-        const change = pctChange(prevValue, value);
-        const trendUp = threshold.trend_direction === "up" && change >= threshold.trend_threshold_pct;
-        const trendDown = threshold.trend_direction === "down" && change <= -threshold.trend_threshold_pct;
+    // Trend analysis over a rolling 5-test window (current + up to 4 prior labs)
+    if (threshold.trend_threshold_pct != null) {
+      const trendSignal = getWindowTrendSignal(value, trendHistory, threshold.parameter, threshold.trend_threshold_pct, threshold.trend_direction);
 
-        if (trendUp || trendDown) {
-          const trendPoints = Math.round(threshold.risk_points_warning * 0.75);
-          score += trendPoints;
-          const dir = trendUp ? "increased" : "decreased";
-          flags.push(`${threshold.parameter} ${dir}: ${Math.abs(change).toFixed(0)}%`);
-          explanations.push({
-            key: `${threshold.parameter}_trend`,
-            message: `${threshold.parameter.toUpperCase()} ${dir} by ${Math.abs(change).toFixed(0)}% since last test (${prevValue} → ${value})`,
-            severity: trendUp ? "critical" : "warning",
-            change_pct: change,
-            guideline: `${threshold.guideline_source} ${threshold.guideline_year}`,
-          });
-        }
+      if (trendSignal) {
+        const trendPoints = Math.round(threshold.risk_points_warning * 0.75);
+        score += trendPoints;
+        flags.push(`${threshold.parameter} ${trendSignal.direction}: ${Math.abs(trendSignal.change_pct).toFixed(0)}%`);
+        explanations.push({
+          key: `${threshold.parameter}_trend`,
+          message: `${threshold.parameter.toUpperCase()} ${trendSignal.direction} by ${Math.abs(trendSignal.change_pct).toFixed(0)}% vs median of previous ${trendSignal.sample_count} test(s) (${trendSignal.baseline} → ${value})`,
+          severity: trendSignal.direction === "increased" ? "critical" : "warning",
+          change_pct: trendSignal.change_pct,
+          guideline: `${threshold.guideline_source} ${threshold.guideline_year}`,
+        });
       }
     }
   }
@@ -218,11 +286,12 @@ export function computeRiskScore(
     dialysis_history?: boolean | null;
     transplant_date?: string | null;
   },
-  prevLab?: LabResult | null
+  historicalLabs?: HistoricalLabInput
 ): { score: number; level: string; flags: string[]; explanations: RiskExplanation[] } {
   let score = 0;
   const flags: string[] = [];
   const explanations: RiskExplanation[] = [];
+  const trendHistory = normalizeHistoricalLabs(historicalLabs);
 
   const tac = lab.tacrolimus_level ?? 0;
   const cr = lab.creatinine ?? 0;
@@ -248,11 +317,18 @@ export function computeRiskScore(
     if (bili > FALLBACK_THRESHOLDS.total_bilirubin.critical) { score += 20; flags.push(`Bilirubin critical: ${bili}`); explanations.push({ key: "bilirubin_critical", message: `Bilirubin ${bili} mg/dL critically high`, severity: "critical", value: bili, threshold: FALLBACK_THRESHOLDS.total_bilirubin.critical }); }
     else if (bili > FALLBACK_THRESHOLDS.total_bilirubin.warning) { score += 10; flags.push(`Bilirubin elevated: ${bili}`); explanations.push({ key: "bilirubin_elevated", message: `Bilirubin ${bili} mg/dL elevated`, severity: "warning", value: bili, threshold: FALLBACK_THRESHOLDS.total_bilirubin.warning }); }
     if ((patient.transplant_number ?? 1) >= 2) { score += 15; flags.push("Re-transplant patient"); explanations.push({ key: "retransplant", message: "Re-transplant patient — higher baseline risk", severity: "warning" }); }
-    if (prevLab) {
-      const prevAlt = prevLab.alt ?? 0;
-      if (prevAlt > 0 && alt > 0) { const c = pctChange(prevAlt, alt); if (c >= 40) { score += 15; flags.push(`ALT rapid increase: +${c.toFixed(0)}%`); explanations.push({ key: "alt_trend_up", message: `ALT increased ${c.toFixed(0)}%`, severity: "critical", change_pct: c }); } }
-      const prevTac = prevLab.tacrolimus_level ?? 0;
-      if (prevTac > 0 && tac > 0) { const c = pctChange(prevTac, tac); if (c <= -30) { score += 10; flags.push(`Tacrolimus dropped: ${c.toFixed(0)}%`); explanations.push({ key: "tac_trend_down", message: `Tacrolimus dropped ${Math.abs(c).toFixed(0)}%`, severity: "warning", change_pct: c }); } }
+    const altTrend = getWindowTrendSignal(alt, trendHistory, "alt", 40, "up");
+    if (altTrend) {
+      score += 15;
+      flags.push(`ALT rapid increase: +${Math.abs(altTrend.change_pct).toFixed(0)}%`);
+      explanations.push({ key: "alt_trend_up", message: `ALT increased ${Math.abs(altTrend.change_pct).toFixed(0)}% vs median of previous ${altTrend.sample_count} test(s)`, severity: "critical", change_pct: altTrend.change_pct });
+    }
+
+    const tacTrend = getWindowTrendSignal(tac, trendHistory, "tacrolimus", 30, "down");
+    if (tacTrend) {
+      score += 10;
+      flags.push(`Tacrolimus dropped: ${tacTrend.change_pct.toFixed(0)}%`);
+      explanations.push({ key: "tac_trend_down", message: `Tacrolimus dropped ${Math.abs(tacTrend.change_pct).toFixed(0)}% vs median of previous ${tacTrend.sample_count} test(s)`, severity: "warning", change_pct: tacTrend.change_pct });
     }
   } else {
     if (cr > FALLBACK_THRESHOLDS.creatinine.critical) { score += 35; flags.push(`Creatinine critical: ${cr}`); explanations.push({ key: "creatinine_critical", message: `Creatinine ${cr} mg/dL critically elevated`, severity: "critical", value: cr, threshold: FALLBACK_THRESHOLDS.creatinine.critical }); }
@@ -262,11 +338,18 @@ export function computeRiskScore(
     if (tac < FALLBACK_THRESHOLDS.tacrolimus.low) { score += 20; flags.push(`Tacrolimus low: ${tac}`); explanations.push({ key: "tacrolimus_low", message: `Tacrolimus ${tac} ng/mL below range`, severity: "critical", value: tac, threshold: FALLBACK_THRESHOLDS.tacrolimus.low }); }
     else if (tac > FALLBACK_THRESHOLDS.tacrolimus.high) { score += 15; flags.push(`Tacrolimus high: ${tac}`); explanations.push({ key: "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL above range`, severity: "warning", value: tac, threshold: FALLBACK_THRESHOLDS.tacrolimus.high }); }
     if (patient.dialysis_history) { score += 20; flags.push("Dialysis history"); explanations.push({ key: "dialysis_history", message: "History of dialysis", severity: "warning" }); }
-    if (prevLab) {
-      const prevCr = prevLab.creatinine ?? 0;
-      if (prevCr > 0 && cr > 0) { const c = pctChange(prevCr, cr); if (c >= 30) { score += 15; flags.push(`Creatinine rapid increase: +${c.toFixed(0)}%`); explanations.push({ key: "cr_trend_up", message: `Creatinine increased ${c.toFixed(0)}%`, severity: "critical", change_pct: c }); } }
-      const prevEgfr = prevLab.egfr ?? 999;
-      if (prevEgfr < 900 && egfr < 900) { const c = pctChange(prevEgfr, egfr); if (c <= -20) { score += 10; flags.push(`eGFR declining: ${c.toFixed(0)}%`); explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(c).toFixed(0)}%`, severity: "warning", change_pct: c }); } }
+    const creatinineTrend = getWindowTrendSignal(cr, trendHistory, "creatinine", 30, "up");
+    if (creatinineTrend) {
+      score += 15;
+      flags.push(`Creatinine rapid increase: +${Math.abs(creatinineTrend.change_pct).toFixed(0)}%`);
+      explanations.push({ key: "cr_trend_up", message: `Creatinine increased ${Math.abs(creatinineTrend.change_pct).toFixed(0)}% vs median of previous ${creatinineTrend.sample_count} test(s)`, severity: "critical", change_pct: creatinineTrend.change_pct });
+    }
+
+    const egfrTrend = getWindowTrendSignal(egfr, trendHistory, "egfr", 20, "down");
+    if (egfrTrend) {
+      score += 10;
+      flags.push(`eGFR declining: ${egfrTrend.change_pct.toFixed(0)}%`);
+      explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(egfrTrend.change_pct).toFixed(0)}% vs median of previous ${egfrTrend.sample_count} test(s)`, severity: "warning", change_pct: egfrTrend.change_pct });
     }
     const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tac < FALLBACK_THRESHOLDS.tacrolimus.low || tac > FALLBACK_THRESHOLDS.tacrolimus.high].filter(Boolean).length;
     if (abnormalCount >= 2) { score += 10; flags.push(`Multiple abnormal: ${abnormalCount}`); explanations.push({ key: "multiple_abnormal", message: `${abnormalCount} values abnormal`, severity: "warning" }); }

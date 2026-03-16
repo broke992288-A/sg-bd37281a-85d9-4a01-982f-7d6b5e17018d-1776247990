@@ -89,6 +89,12 @@ function pctChange(prev: number, curr: number): number {
   return ((curr - prev) / prev) * 100;
 }
 
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
 function daysSince(dateStr: string | null): number | null {
   if (!dateStr) return null;
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -172,7 +178,7 @@ serve(async (req) => {
 
       for (let i = 0; i < labs.length; i++) {
         const lab = labs[i];
-        const prevLab = i > 0 ? labs[i - 1] : null;
+        const prevWindow = labs.slice(Math.max(0, i - 4), i);
 
         const CONVERTIBLE = ["total_bilirubin", "direct_bilirubin", "creatinine", "hb", "platelets", "tlc"];
         for (const param of CONVERTIBLE) {
@@ -208,10 +214,16 @@ serve(async (req) => {
             flags.push(result.message);
             explanations.push({ key: `${threshold.parameter}_${result.status}`, severity: result.status, message: result.message, value, threshold: result.status === "critical" ? (threshold.critical_min ?? threshold.critical_max) : (threshold.warning_min ?? threshold.warning_max), guideline: `${threshold.guideline_source} ${threshold.guideline_year}` });
           }
-          if (prevLab && threshold.trend_threshold_pct != null) {
-            const prevValue = prevLab[threshold.parameter as string] as number | null;
-            if (prevValue != null && prevValue > 0 && value > 0) {
-              const change = pctChange(prevValue, value);
+          if (threshold.trend_threshold_pct != null && prevWindow.length > 0) {
+            const previousValues = prevWindow
+              .map((prevLab) => threshold.parameter === "tacrolimus"
+                ? (prevLab.tacrolimus_level as number | null)
+                : (prevLab[threshold.parameter as string] as number | null))
+              .filter((prevValue): prevValue is number => prevValue != null && prevValue > 0);
+
+            if (previousValues.length > 0 && value > 0) {
+              const baseline = median(previousValues);
+              const change = pctChange(baseline, value);
               const trendUp = threshold.trend_direction === "up" && change >= threshold.trend_threshold_pct;
               const trendDown = threshold.trend_direction === "down" && change <= -threshold.trend_threshold_pct;
               if (trendUp || trendDown) {
