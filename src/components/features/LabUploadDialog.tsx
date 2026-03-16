@@ -382,9 +382,9 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
           // --- Compute risk score for each saved lab ---
           if (organType) {
             try {
-              const { score, level, flags, explanations } = await computeRiskScoreAsync(
-                organType, savedLab as any, { ...patientData, transplant_date: undefined }, lastSavedLab
-              );
+               const { score, level, flags, explanations } = await computeRiskScoreAsync(
+                 organType, savedLab as any, { ...patientData, transplant_date: undefined }, historicalWindow
+               );
 
               const snapshot = await insertRiskSnapshot({
                 patient_id: patientId,
