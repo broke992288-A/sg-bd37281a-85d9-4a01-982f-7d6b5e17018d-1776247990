@@ -240,7 +240,7 @@ serve(async (req) => {
         if ((patient.transplant_number ?? 1) >= 2) { score += 15; flags.push("Re-transplant patient"); }
         if (patient.organ_type === "kidney" && patient.dialysis_history) { score += 20; flags.push("Dialysis history"); }
 
-        const abnormalCount = explanations.filter((e: any) => e.status === "critical" || e.status === "warning").length;
+        const abnormalCount = explanations.filter((e: any) => e.severity === "critical" || e.severity === "warning").length;
         if (abnormalCount >= 3) { score += 10; flags.push(`Multiple abnormal: ${abnormalCount}`); }
 
         score = Math.min(score, 100);
@@ -254,10 +254,10 @@ serve(async (req) => {
           algorithm_version: ALGORITHM_VERSION, created_at: lab.recorded_at,
         });
 
-        const criticalExplanations = explanations.filter((e: any) => e.status === "critical");
-        if (criticalExplanations.length > 0) {
+        const hasCriticalFinding = explanations.some((e: any) => e.severity === "critical") || score >= 60;
+        if (hasCriticalFinding) {
           alertsToInsert.push({
-            patient_id: patient.id, alert_type: "risk_recalculation", severity: "critical",
+            patient_id: patient.id, alert_type: "risk_recalculation", severity: level === "high" ? "critical" : "warning",
             title: `Shifokor bilan maslahatlashish tavsiya etiladi`,
             message: flags.join("; "), is_read: true, created_at: lab.recorded_at,
           });
