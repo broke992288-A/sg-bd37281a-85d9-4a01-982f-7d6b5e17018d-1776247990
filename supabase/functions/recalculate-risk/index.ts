@@ -206,7 +206,7 @@ serve(async (req) => {
           if (result.status !== "normal") {
             score += result.points;
             flags.push(result.message);
-            explanations.push({ key: `${threshold.parameter}_${result.status}`, status: result.status, value, guideline: `${threshold.guideline_source} ${threshold.guideline_year}` });
+            explanations.push({ key: `${threshold.parameter}_${result.status}`, severity: result.status, message: result.message, value, threshold: result.status === "critical" ? (threshold.critical_min ?? threshold.critical_max) : (threshold.warning_min ?? threshold.warning_max), guideline: `${threshold.guideline_source} ${threshold.guideline_year}` });
           }
           if (prevLab && threshold.trend_threshold_pct != null) {
             const prevValue = prevLab[threshold.parameter as string] as number | null;
