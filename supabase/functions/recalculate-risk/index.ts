@@ -178,7 +178,7 @@ serve(async (req) => {
 
       for (let i = 0; i < labs.length; i++) {
         const lab = labs[i];
-        const prevLab = i > 0 ? labs[i - 1] : null;
+        const prevWindow = labs.slice(Math.max(0, i - 4), i);
 
         const CONVERTIBLE = ["total_bilirubin", "direct_bilirubin", "creatinine", "hb", "platelets", "tlc"];
         for (const param of CONVERTIBLE) {
