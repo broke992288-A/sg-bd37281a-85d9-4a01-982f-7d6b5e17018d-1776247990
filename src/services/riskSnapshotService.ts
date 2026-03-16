@@ -229,27 +229,21 @@ function computeRiskWithDbThresholds(
       });
     }
 
-    // Trend analysis
-    if (prevLab && threshold.trend_threshold_pct != null) {
-      const prevValue = prevLab[threshold.parameter as keyof LabResult] as number | null;
-      if (prevValue != null && prevValue > 0 && value > 0) {
-        const change = pctChange(prevValue, value);
-        const trendUp = threshold.trend_direction === "up" && change >= threshold.trend_threshold_pct;
-        const trendDown = threshold.trend_direction === "down" && change <= -threshold.trend_threshold_pct;
+    // Trend analysis over a rolling 5-test window (current + up to 4 prior labs)
+    if (threshold.trend_threshold_pct != null) {
+      const trendSignal = getWindowTrendSignal(value, trendHistory, threshold.parameter, threshold.trend_threshold_pct, threshold.trend_direction);
 
-        if (trendUp || trendDown) {
-          const trendPoints = Math.round(threshold.risk_points_warning * 0.75);
-          score += trendPoints;
-          const dir = trendUp ? "increased" : "decreased";
-          flags.push(`${threshold.parameter} ${dir}: ${Math.abs(change).toFixed(0)}%`);
-          explanations.push({
-            key: `${threshold.parameter}_trend`,
-            message: `${threshold.parameter.toUpperCase()} ${dir} by ${Math.abs(change).toFixed(0)}% since last test (${prevValue} → ${value})`,
-            severity: trendUp ? "critical" : "warning",
-            change_pct: change,
-            guideline: `${threshold.guideline_source} ${threshold.guideline_year}`,
-          });
-        }
+      if (trendSignal) {
+        const trendPoints = Math.round(threshold.risk_points_warning * 0.75);
+        score += trendPoints;
+        flags.push(`${threshold.parameter} ${trendSignal.direction}: ${Math.abs(trendSignal.change_pct).toFixed(0)}%`);
+        explanations.push({
+          key: `${threshold.parameter}_trend`,
+          message: `${threshold.parameter.toUpperCase()} ${trendSignal.direction} by ${Math.abs(trendSignal.change_pct).toFixed(0)}% vs median of previous ${trendSignal.sample_count} test(s) (${trendSignal.baseline} → ${value})`,
+          severity: trendSignal.direction === "increased" ? "critical" : "warning",
+          change_pct: trendSignal.change_pct,
+          guideline: `${threshold.guideline_source} ${threshold.guideline_year}`,
+        });
       }
     }
   }
