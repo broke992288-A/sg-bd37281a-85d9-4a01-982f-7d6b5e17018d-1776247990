@@ -124,8 +124,8 @@ describe("computeRiskScore (advanced)", () => {
       tacrolimus_level: 1, alt: 300, ast: 300, total_bilirubin: 10,
       creatinine: null, egfr: null, proteinuria: null, potassium: null,
     } as any;
-    const prevLab = { ...extremeLab, alt: 50 };
-    const result = computeRiskScore("liver", extremeLab, { transplant_number: 3 }, prevLab);
+    const history = [{ ...extremeLab, alt: 50 }, { ...extremeLab, alt: 60 }];
+    const result = computeRiskScore("liver", extremeLab, { transplant_number: 3 }, history);
     expect(result.score).toBeLessThanOrEqual(100);
   });
 
