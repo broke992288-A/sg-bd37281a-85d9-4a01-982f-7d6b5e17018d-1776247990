@@ -400,16 +400,37 @@ async function generateDoc(variant: Variant) {
       "risk_snapshots (1) → patient_alerts (0..N) — risk_snapshot_id FK",
     ]),
 
-    sub("Saqlangan protseduralar va triggerlar"),
+    sub("Saqlangan protseduralar (Functions)"),
     table(
       ["Nomi", "Turi", "Vazifasi"],
       [
-        ["insert_lab_and_recalculate", "Function", "Lab kiritish + risk qayta hisoblash (tranzaksion)"],
-        ["generate_lab_schedule", "Function", "Transplant sanasi bo'yicha jadval generatsiyasi"],
-        ["has_role", "Function", "RLS uchun rol tekshiruvi (SECURITY DEFINER)"],
-        ["register_patient_self", "Function", "Bemor o'zi ro'yxatdan o'tishi"],
-        ["normalize_phone", "Function", "Telefon raqamini standartlashtirish"],
+        ["insert_lab_and_recalculate", "SECURITY DEFINER", "Lab kiritish + risk qayta hisoblash (atom tranzaksiya)"],
+        ["generate_lab_schedule", "SECURITY DEFINER", "Transplant sanasi bo'yicha jadval generatsiyasi"],
+        ["has_role", "SECURITY DEFINER", "RLS uchun rol tekshiruvi (rekursiyasiz)"],
+        ["register_patient_self", "SECURITY DEFINER", "Bemor o'zi ro'yxatdan o'tishi + telefon bo'yicha bog'lash"],
+        ["normalize_phone", "IMMUTABLE", "Telefon raqamini +998... formatiga standartlashtirish"],
+        ["validate_role_assignment", "SECURITY DEFINER", "Admin bo'lmasa doctor/admin rol berish taqiqlanadi"],
+        ["update_updated_at_column", "Function", "updated_at ustunini avtomatik yangilash"],
       ],
+    ),
+
+    sub("Triggerlar (14 ta)"),
+    table(
+      ["Trigger nomi", "Jadval", "Vazifasi"],
+      [
+        ["sync_patient_risk_from_snapshot", "risk_snapshots", "Risk snapshot qo'shilganda bemorning risk_level ni yangilash"],
+        ["check_lab_abnormal_and_alert", "lab_results", "Lab natija kiritilganda klinik chegaralarga qarab avtomatik alert yaratish"],
+        ["normalize_patient_phone", "patients", "Bemor telefonini INSERT/UPDATE da normalizatsiya qilish"],
+        ["trg_generate_lab_schedule", "patients", "Transplant sanasi kiritilganda lab jadvali generatsiya qilish"],
+        ["notify_medication_change", "medication_changes", "Dozaj o'zgartirilganda bemorga alert yuborish"],
+        ["check_medication_adherence_alert", "medication_adherence", "2+ kun dori qabul qilinmasa ogohlantirish yaratish"],
+        ["validate_role_assignment", "user_roles", "Admin bo'lmagan foydalanuvchi yuqori rol olishini taqiqlash"],
+        ["update_updated_at (patients)", "patients", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (medications)", "medications", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (lab_schedules)", "lab_schedules", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (transplant_episodes)", "transplant_episodes", "updated_at ustunini avtomatik yangilash"],
+      ],
+      [100, 80, '*'],
     ),
 
     /* ═══ 9 ═══ */
