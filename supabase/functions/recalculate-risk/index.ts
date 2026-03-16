@@ -214,10 +214,14 @@ serve(async (req) => {
             flags.push(result.message);
             explanations.push({ key: `${threshold.parameter}_${result.status}`, severity: result.status, message: result.message, value, threshold: result.status === "critical" ? (threshold.critical_min ?? threshold.critical_max) : (threshold.warning_min ?? threshold.warning_max), guideline: `${threshold.guideline_source} ${threshold.guideline_year}` });
           }
-          if (prevLab && threshold.trend_threshold_pct != null) {
-            const prevValue = prevLab[threshold.parameter as string] as number | null;
-            if (prevValue != null && prevValue > 0 && value > 0) {
-              const change = pctChange(prevValue, value);
+          if (threshold.trend_threshold_pct != null && prevWindow.length > 0) {
+            const previousValues = prevWindow
+              .map((prevLab) => prevLab[threshold.parameter as string] as number | null)
+              .filter((prevValue): prevValue is number => prevValue != null && prevValue > 0);
+
+            if (previousValues.length > 0 && value > 0) {
+              const baseline = median(previousValues);
+              const change = pctChange(baseline, value);
               const trendUp = threshold.trend_direction === "up" && change >= threshold.trend_threshold_pct;
               const trendDown = threshold.trend_direction === "down" && change <= -threshold.trend_threshold_pct;
               if (trendUp || trendDown) {

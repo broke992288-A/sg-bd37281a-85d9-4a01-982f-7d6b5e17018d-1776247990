@@ -338,11 +338,18 @@ export function computeRiskScore(
     if (tac < FALLBACK_THRESHOLDS.tacrolimus.low) { score += 20; flags.push(`Tacrolimus low: ${tac}`); explanations.push({ key: "tacrolimus_low", message: `Tacrolimus ${tac} ng/mL below range`, severity: "critical", value: tac, threshold: FALLBACK_THRESHOLDS.tacrolimus.low }); }
     else if (tac > FALLBACK_THRESHOLDS.tacrolimus.high) { score += 15; flags.push(`Tacrolimus high: ${tac}`); explanations.push({ key: "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL above range`, severity: "warning", value: tac, threshold: FALLBACK_THRESHOLDS.tacrolimus.high }); }
     if (patient.dialysis_history) { score += 20; flags.push("Dialysis history"); explanations.push({ key: "dialysis_history", message: "History of dialysis", severity: "warning" }); }
-    if (prevLab) {
-      const prevCr = prevLab.creatinine ?? 0;
-      if (prevCr > 0 && cr > 0) { const c = pctChange(prevCr, cr); if (c >= 30) { score += 15; flags.push(`Creatinine rapid increase: +${c.toFixed(0)}%`); explanations.push({ key: "cr_trend_up", message: `Creatinine increased ${c.toFixed(0)}%`, severity: "critical", change_pct: c }); } }
-      const prevEgfr = prevLab.egfr ?? 999;
-      if (prevEgfr < 900 && egfr < 900) { const c = pctChange(prevEgfr, egfr); if (c <= -20) { score += 10; flags.push(`eGFR declining: ${c.toFixed(0)}%`); explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(c).toFixed(0)}%`, severity: "warning", change_pct: c }); } }
+    const creatinineTrend = getWindowTrendSignal(cr, trendHistory, "creatinine", 30, "up");
+    if (creatinineTrend) {
+      score += 15;
+      flags.push(`Creatinine rapid increase: +${Math.abs(creatinineTrend.change_pct).toFixed(0)}%`);
+      explanations.push({ key: "cr_trend_up", message: `Creatinine increased ${Math.abs(creatinineTrend.change_pct).toFixed(0)}% vs median of previous ${creatinineTrend.sample_count} test(s)`, severity: "critical", change_pct: creatinineTrend.change_pct });
+    }
+
+    const egfrTrend = getWindowTrendSignal(egfr, trendHistory, "egfr", 20, "down");
+    if (egfrTrend) {
+      score += 10;
+      flags.push(`eGFR declining: ${egfrTrend.change_pct.toFixed(0)}%`);
+      explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(egfrTrend.change_pct).toFixed(0)}% vs median of previous ${egfrTrend.sample_count} test(s)`, severity: "warning", change_pct: egfrTrend.change_pct });
     }
     const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tac < FALLBACK_THRESHOLDS.tacrolimus.low || tac > FALLBACK_THRESHOLDS.tacrolimus.high].filter(Boolean).length;
     if (abnormalCount >= 2) { score += 10; flags.push(`Multiple abnormal: ${abnormalCount}`); explanations.push({ key: "multiple_abnormal", message: `${abnormalCount} values abnormal`, severity: "warning" }); }
