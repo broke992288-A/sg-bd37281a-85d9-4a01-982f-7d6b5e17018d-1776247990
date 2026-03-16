@@ -210,7 +210,7 @@ async function generateDoc(variant: Variant) {
           [
             { text: '', border: [false, false, false, false] },
             { text: "EDGE FUNCTIONS\n(Deno Runtime)", alignment: 'center', fontSize: 8, fillColor: '#E8F5E9', margin: [0, 5, 0, 5] },
-            { text: "PostgreSQL DB\n(12 " + t("jadval", variant) + ")", alignment: 'center', fontSize: 8, fillColor: '#E8F5E9', margin: [0, 5, 0, 5] },
+            { text: "PostgreSQL DB\n(13 " + t("jadval", variant) + ")", alignment: 'center', fontSize: 8, fillColor: '#E8F5E9', margin: [0, 5, 0, 5] },
           ],
           [
             { text: '', border: [false, false, false, false] },
@@ -253,8 +253,7 @@ async function generateDoc(variant: Variant) {
         ["React Router", "6.x", "Marshrut boshqaruvi"],
         ["Zod", "3.x", "Ma'lumot validatsiya sxemalari"],
         ["Recharts", "2.x", "Grafik va diagrammalar"],
-        ["jsPDF / pdfMake", "—", "PDF hisobotlar generatsiyasi"],
-        ["Framer Motion", "—", "Animatsiya kutubxonasi"],
+        ["jsPDF + pdfMake", "—", "PDF hisobotlar generatsiyasi"],
         ["Lovable Cloud", "—", "Backend (DB, Auth, Storage, Functions)"],
         ["Deno", "1.x", "Edge Functions muhiti"],
         ["Gemini AI", "2.5–3.x", "AI bashorat va OCR"],
@@ -363,7 +362,7 @@ async function generateDoc(variant: Variant) {
 
     /* ═══ 8 ═══ */
     section(8, "MA'LUMOTLAR BAZASI DIZAYNI"),
-    sub("Jadvallar ro'yxati (12 ta)"),
+    sub("Jadvallar ro'yxati (13 ta)"),
     table(
       ["Jadval nomi", "Taxminiy qatorlar", "Vazifasi"],
       [
@@ -377,6 +376,7 @@ async function generateDoc(variant: Variant) {
         ["patient_events", "~500+", "Bemor hodisalari logi"],
         ["lab_schedules", "~200+", "Laboratoriya jadvallari"],
         ["clinical_thresholds", "~50+", "Klinik chegaralar (KDIGO/BANFF)"],
+        ["transplant_episodes", "~50+", "Transplant episodlari (ko'p operatsiya tarixi)"],
         ["audit_logs", "~1000+", "Tizim audit loglari"],
         ["user_roles", "~50+", "Foydalanuvchi rollari"],
       ],
@@ -389,20 +389,48 @@ async function generateDoc(variant: Variant) {
       "patients (1) → medications (N) — patient_id FK",
       "patients (1) → risk_snapshots (N) — patient_id FK",
       "patients (1) → patient_alerts (N) — patient_id FK",
+      "patients (1) → patient_events (N) — patient_id FK",
+      "patients (1) → lab_schedules (N) — patient_id FK",
+      "patients (1) → transplant_episodes (N) — patient_id FK",
+      "patients (1) → medication_changes (N) — patient_id FK",
       "medications (1) → medication_adherence (N) — medication_id FK",
+      "medications (1) → medication_changes (N) — medication_id FK",
       "lab_results (1) → risk_snapshots (1) — lab_result_id FK",
+      "lab_results (1) → lab_schedules (0..1) — completed_lab_id FK",
+      "risk_snapshots (1) → patient_alerts (0..N) — risk_snapshot_id FK",
     ]),
 
-    sub("Saqlangan protseduralar va triggerlar"),
+    sub("Saqlangan protseduralar (Functions)"),
     table(
       ["Nomi", "Turi", "Vazifasi"],
       [
-        ["insert_lab_and_recalculate", "Function", "Lab kiritish + risk qayta hisoblash (tranzaksion)"],
-        ["generate_lab_schedule", "Function", "Transplant sanasi bo'yicha jadval generatsiyasi"],
-        ["has_role", "Function", "RLS uchun rol tekshiruvi (SECURITY DEFINER)"],
-        ["register_patient_self", "Function", "Bemor o'zi ro'yxatdan o'tishi"],
-        ["normalize_phone", "Function", "Telefon raqamini standartlashtirish"],
+        ["insert_lab_and_recalculate", "SECURITY DEFINER", "Lab kiritish + risk qayta hisoblash (atom tranzaksiya)"],
+        ["generate_lab_schedule", "SECURITY DEFINER", "Transplant sanasi bo'yicha jadval generatsiyasi"],
+        ["has_role", "SECURITY DEFINER", "RLS uchun rol tekshiruvi (rekursiyasiz)"],
+        ["register_patient_self", "SECURITY DEFINER", "Bemor o'zi ro'yxatdan o'tishi + telefon bo'yicha bog'lash"],
+        ["normalize_phone", "IMMUTABLE", "Telefon raqamini +998... formatiga standartlashtirish"],
+        ["validate_role_assignment", "SECURITY DEFINER", "Admin bo'lmasa doctor/admin rol berish taqiqlanadi"],
+        ["update_updated_at_column", "Function", "updated_at ustunini avtomatik yangilash"],
       ],
+    ),
+
+    sub("Triggerlar (14 ta)"),
+    table(
+      ["Trigger nomi", "Jadval", "Vazifasi"],
+      [
+        ["sync_patient_risk_from_snapshot", "risk_snapshots", "Risk snapshot qo'shilganda bemorning risk_level ni yangilash"],
+        ["check_lab_abnormal_and_alert", "lab_results", "Lab natija kiritilganda klinik chegaralarga qarab avtomatik alert yaratish"],
+        ["normalize_patient_phone", "patients", "Bemor telefonini INSERT/UPDATE da normalizatsiya qilish"],
+        ["trg_generate_lab_schedule", "patients", "Transplant sanasi kiritilganda lab jadvali generatsiya qilish"],
+        ["notify_medication_change", "medication_changes", "Dozaj o'zgartirilganda bemorga alert yuborish"],
+        ["check_medication_adherence_alert", "medication_adherence", "2+ kun dori qabul qilinmasa ogohlantirish yaratish"],
+        ["validate_role_assignment", "user_roles", "Admin bo'lmagan foydalanuvchi yuqori rol olishini taqiqlash"],
+        ["update_updated_at (patients)", "patients", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (medications)", "medications", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (lab_schedules)", "lab_schedules", "updated_at ustunini avtomatik yangilash"],
+        ["update_updated_at (transplant_episodes)", "transplant_episodes", "updated_at ustunini avtomatik yangilash"],
+      ],
+      [100, 80, '*'],
     ),
 
     /* ═══ 9 ═══ */
@@ -472,7 +500,7 @@ async function generateDoc(variant: Variant) {
     sub("Hisobotlar"),
     bullets([
       "Oylik reeystr, choraklik statistika, dori iste'moli, hudud tahlili",
-      "Klient tomonida PDF generatsiya (jsPDF / pdfMake)",
+      "Klient tomonida PDF generatsiya (jsPDF — hisobotlar, pdfMake — texnik hujjat)",
     ]),
 
     /* ═══ 11 ═══ */
