@@ -150,11 +150,11 @@ export async function computeRiskScoreAsync(
 
   // If we have DB thresholds, use them; otherwise fall back to sync version
   if (organThresholds.length > 0) {
-    return computeRiskWithDbThresholds(organType, lab, patient, prevLab, organThresholds);
+    return computeRiskWithDbThresholds(organType, lab, patient, historicalLabs, organThresholds);
   }
 
   // Fallback to hardcoded
-  return computeRiskScore(organType, lab, patient, prevLab);
+  return computeRiskScore(organType, lab, patient, historicalLabs);
 }
 
 function getThresholdFor(thresholds: ClinicalThreshold[], param: string): ClinicalThreshold | undefined {
