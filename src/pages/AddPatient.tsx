@@ -67,9 +67,9 @@ export default function AddPatient() {
     e.target.value = "";
     setScanning(true);
     try {
-      const { base64, fileType } = await preprocessLabImage(file);
+      const { base64, fileType, textContent } = await preprocessLabImage(file);
       const { data: ocrData, error: ocrErr } = await supabase.functions.invoke("ocr-lab-report", {
-        body: { imageBase64: base64, fileType },
+        body: { imageBase64: base64, fileType, textContent },
       });
       if (ocrErr) throw ocrErr;
       if (ocrData?.error) throw new Error(ocrData.error);
