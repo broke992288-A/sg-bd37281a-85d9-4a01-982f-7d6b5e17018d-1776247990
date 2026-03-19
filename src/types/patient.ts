@@ -8,7 +8,7 @@ export type PatientRow = Pick<Patient, "id" | "full_name" | "organ_type" | "risk
 
 export type PatientListRow = Pick<Patient,
   "id" | "full_name" | "organ_type" | "risk_level" | "gender" |
-  "date_of_birth" | "transplant_date" | "created_at" | "dialysis_history" | "return_dialysis_date"
+  "date_of_birth" | "transplant_date" | "created_at" | "dialysis_history" | "return_dialysis_date" | "patient_number"
 >;
 
 export type LatestLabRow = Pick<LabResult, "patient_id" | "tacrolimus_level" | "creatinine">;
