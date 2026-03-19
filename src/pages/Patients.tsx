@@ -105,6 +105,7 @@ export default function Patients() {
                   <TableBody>
                     {patients.map((p) => (
                       <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/patient/${p.id}`)}>
+                        <TableCell className="font-medium text-muted-foreground">{p.patient_number ?? "—"}</TableCell>
                         <TableCell className="font-medium">{p.full_name}</TableCell>
                         <TableCell className="text-muted-foreground">{getAge(p.date_of_birth)}/{p.gender ? t(`gender.${p.gender}`) : "—"}</TableCell>
                         <TableCell><Badge variant="outline">{t(`organ.${p.organ_type}`)}</Badge></TableCell>
