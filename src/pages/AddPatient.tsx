@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Camera, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -20,12 +20,17 @@ import { calculateRisk } from "@/utils/risk";
 import { uzbekistanRegions } from "@/data/uzbekistanRegions";
 import { patientSchema, liverLabSchema, kidneyLabSchema } from "@/lib/validations";
 import type { OrganType } from "@/types/patient";
+import { supabase } from "@/integrations/supabase/client";
+import { preprocessLabImage } from "@/utils/imagePreprocess";
 
 export default function AddPatient() {
   const [step, setStep] = useState<1 | 2>(1);
   const [organ, setOrgan] = useState<OrganType | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const ocrFileRef = useRef<HTMLInputElement>(null);
+  const ocrCameraRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,6 +59,45 @@ export default function AddPatient() {
   const handleRegionChange = (v: string) => {
     setForm((prev) => ({ ...prev, region: v, district: "" }));
     if (errors.region) setErrors((prev) => { const n = { ...prev }; delete n.region; return n; });
+  };
+
+  const handleOcrFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setScanning(true);
+    try {
+      const { base64, fileType } = await preprocessLabImage(file);
+      const { data: ocrData, error: ocrErr } = await supabase.functions.invoke("ocr-lab-report", {
+        body: { imageBase64: base64, fileType },
+      });
+      if (ocrErr) throw ocrErr;
+      if (ocrData?.error) throw new Error(ocrData.error);
+
+      const extracted = ocrData?.dateGroups?.[0]?.data ?? ocrData?.data ?? {};
+      const updates: Record<string, string> = {};
+      const labKeys = organ === "liver"
+        ? ["tacrolimus_level", "alt", "ast", "total_bilirubin", "direct_bilirubin"]
+        : ["creatinine", "egfr", "proteinuria", "potassium"];
+
+      for (const key of labKeys) {
+        if (extracted[key] != null && extracted[key] !== null) {
+          updates[key] = String(extracted[key]);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setForm((prev) => ({ ...prev, ...updates }));
+        toast({ title: `${Object.keys(updates).length} ${t("upload.valuesFound")}` });
+      } else {
+        toast({ title: t("common.error"), description: t("upload.noValuesFound"), variant: "destructive" });
+      }
+    } catch (err: any) {
+      console.error("OCR error:", err);
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -322,7 +366,21 @@ export default function AddPatient() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">{t("add.labResults")}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">{t("add.labResults")}</CardTitle>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button type="button" variant="outline" size="sm" disabled={scanning} onClick={() => ocrCameraRef.current?.click()} className="gap-1.5">
+                  {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                  {t("upload.takePhoto")}
+                </Button>
+                <Button type="button" variant="outline" size="sm" disabled={scanning} onClick={() => ocrFileRef.current?.click()} className="gap-1.5">
+                  {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {t("upload.uploadFile")}
+                </Button>
+                <input ref={ocrCameraRef} type="file" accept="image/jpeg,image/jpg,image/png" capture="environment" className="hidden" onChange={handleOcrFile} />
+                <input ref={ocrFileRef} type="file" accept="image/jpeg,image/jpg,image/png,application/pdf" className="hidden" onChange={handleOcrFile} />
+              </div>
+            </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               {organ === "liver" ? (
                 <>
