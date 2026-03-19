@@ -178,6 +178,7 @@ export default function AddPatient() {
         blood_type: form.blood_type || null,
         donor_blood_type: form.donor_blood_type || null,
         titer_therapy: form.titer_therapy === "yes",
+        phone: form.phone || null,
       });
 
       const labData: any = { patient_id: patient.id };
