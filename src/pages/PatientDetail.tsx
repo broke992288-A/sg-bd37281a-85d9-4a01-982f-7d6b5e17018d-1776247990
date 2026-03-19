@@ -10,6 +10,7 @@ import { ArrowLeft, Clock, FlaskConical, Shield, Trash2, Pill, Stethoscope } fro
 import { Link } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import AddLabDialog from "@/components/features/AddLabDialog";
+import LabUploadDialog from "@/components/features/LabUploadDialog";
 import LabHistoryTable from "@/components/features/LabHistoryTable";
 import EditPatientDialog from "@/components/features/EditPatientDialog";
 import RiskScoreCard from "@/components/features/RiskScoreCard";
@@ -215,7 +216,10 @@ export default function PatientDetail() {
               <FlaskConical className="h-5 w-5 text-primary shrink-0" />
               <CardTitle className="text-lg">{t("detail.latestLabs")}</CardTitle>
             </div>
-            <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date }} />
+            <div className="flex flex-wrap gap-2">
+              <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date }} />
+              <LabUploadDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} />
+            </div>
           </CardHeader>
           <CardContent>
             {latestLab ? (
