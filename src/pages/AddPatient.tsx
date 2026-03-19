@@ -61,6 +61,45 @@ export default function AddPatient() {
     if (errors.region) setErrors((prev) => { const n = { ...prev }; delete n.region; return n; });
   };
 
+  const handleOcrFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setScanning(true);
+    try {
+      const { base64, fileType } = await preprocessLabImage(file);
+      const { data: ocrData, error: ocrErr } = await supabase.functions.invoke("ocr-lab-report", {
+        body: { imageBase64: base64, fileType },
+      });
+      if (ocrErr) throw ocrErr;
+      if (ocrData?.error) throw new Error(ocrData.error);
+
+      const extracted = ocrData?.dateGroups?.[0]?.data ?? ocrData?.data ?? {};
+      const updates: Record<string, string> = {};
+      const labKeys = organ === "liver"
+        ? ["tacrolimus_level", "alt", "ast", "total_bilirubin", "direct_bilirubin"]
+        : ["creatinine", "egfr", "proteinuria", "potassium"];
+
+      for (const key of labKeys) {
+        if (extracted[key] != null && extracted[key] !== null) {
+          updates[key] = String(extracted[key]);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setForm((prev) => ({ ...prev, ...updates }));
+        toast({ title: `${Object.keys(updates).length} ${t("upload.valuesFound")}` });
+      } else {
+        toast({ title: t("common.error"), description: t("upload.noValuesFound"), variant: "destructive" });
+      }
+    } catch (err: any) {
+      console.error("OCR error:", err);
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
