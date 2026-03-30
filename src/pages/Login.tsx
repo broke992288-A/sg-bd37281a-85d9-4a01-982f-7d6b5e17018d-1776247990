@@ -5,24 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Loader2, Phone, Mail } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import LanguageSelector from "@/components/features/LanguageSelector";
-import { resetPasswordForEmail, signUpWithPhone } from "@/services/authService";
+import { resetPasswordForEmail } from "@/services/authService";
 import { logAudit } from "@/services/auditService";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [isForgot, setIsForgot] = useState(false);
-  const [loginMode, setLoginMode] = useState<"phone" | "email">("phone");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -35,22 +30,9 @@ export default function Login() {
         await resetPasswordForEmail(email);
         toast({ title: t("login.resetSent"), description: t("login.resetSentDesc") });
         setIsForgot(false);
-      } else if (isSignUp) {
-        if (loginMode === "phone") {
-          if (!phone || phone.replace(/[^0-9]/g, "").length < 9) {
-            throw new Error("Телефон рақамини тўғри киритинг");
-          }
-          await signUpWithPhone(phone, password, fullName);
-          toast({ title: "Аккаунт яратилди!", description: "Тизимга киришингиз мумкин" });
-          setIsSignUp(false);
-        } else {
-          await signUp(email, password, fullName, phone);
-          toast({ title: t("login.accountCreated"), description: t("login.checkEmail") });
-        }
       } else {
-        const identifier = loginMode === "phone" ? phone : email;
-        await signIn(identifier, password);
-        logAudit({ action: "user_login", metadata: { identifier } });
+        await signIn(email, password);
+        logAudit({ action: "user_login", metadata: { email } });
         navigate("/select-role");
       }
     } catch (err: any) {
@@ -76,86 +58,40 @@ export default function Login() {
         <Card className="border-0 shadow-xl shadow-primary/5">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl">
-              {isForgot ? t("login.resetPassword") : isSignUp ? t("login.signUp") : t("login.signIn")}
+              {isForgot ? t("login.resetPassword") : t("login.signIn")}
             </CardTitle>
             <CardDescription>
-              {isForgot ? t("login.resetDesc") : isSignUp
-                ? "Телефон рақами ёки email орқали рўйхатдан ўтинг"
-                : "Телефон рақами ёки email орқали тизимга киринг"}
+              {isForgot ? t("login.resetDesc") : "Email ва парол орқали тизимга киринг"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!isForgot && (
-              <Tabs value={loginMode} onValueChange={(v) => setLoginMode(v as "phone" | "email")} className="mb-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Телефон
-                  </TabsTrigger>
-                  <TabsTrigger value="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && !isForgot && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">{t("login.fullName")}</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required placeholder="Исми шарифи" />
-                </div>
-              )}
-
-              {loginMode === "phone" && !isForgot ? (
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Телефон рақами</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\-\s()]/g, ""))}
-                    required
-                    placeholder="+998 90 123 45 67"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("login.email")}</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="jane@hospital.com" />
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("login.email")}</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="bemor@transplant.uz" />
+              </div>
 
               {!isForgot && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">{t("login.password")}</Label>
-                    {!isSignUp && loginMode === "email" && (
-                      <button type="button" className="text-xs text-primary hover:underline" onClick={() => setIsForgot(true)}>
-                        {t("login.forgotPassword")}
-                      </button>
-                    )}
+                    <button type="button" className="text-xs text-primary hover:underline" onClick={() => setIsForgot(true)}>
+                      {t("login.forgotPassword")}
+                    </button>
                   </div>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="••••••••" />
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="animate-spin" />}
-                {isForgot ? t("login.sendResetLink") : isSignUp ? t("login.createAccount") : t("login.signIn")}
+                {isForgot ? t("login.sendResetLink") : t("login.signIn")}
               </Button>
             </form>
-            <div className="mt-4 text-center text-sm text-muted-foreground">
-              {isForgot ? (
+            {isForgot && (
+              <div className="mt-4 text-center text-sm text-muted-foreground">
                 <button className="font-medium text-primary hover:underline" onClick={() => setIsForgot(false)}>{t("login.backToLogin")}</button>
-              ) : (
-                <>
-                  {isSignUp ? t("login.alreadyHave") : t("login.dontHave")}{" "}
-                  <button className="font-medium text-primary hover:underline" onClick={() => setIsSignUp(!isSignUp)}>
-                    {isSignUp ? t("login.signIn") : t("login.signUp")}
-                  </button>
-                </>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
