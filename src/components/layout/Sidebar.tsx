@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Pill, AlertTriangle, FileText, Activity, Heart } from "lucide-react";
+import { LayoutDashboard, Users, Pill, AlertTriangle, FileText, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoImg from "@/assets/logo.png";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 
