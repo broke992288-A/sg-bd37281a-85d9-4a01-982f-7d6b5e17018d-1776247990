@@ -134,10 +134,9 @@ export default function PatientDetail() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/patients")}><ArrowLeft className="h-5 w-5" /></Button>
             {patient.full_name.includes("bdulhayot") && (
-              <Avatar className="h-24 w-24 rounded-full overflow-hidden border-2 border-primary/20">
-                <AvatarImage src={patientPhotoAbdulhayot} alt={patient.full_name} className="h-full w-full object-cover" />
-                <AvatarFallback className="rounded-full">{patient.full_name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-              </Avatar>
+              <div className="h-24 w-24 rounded-lg overflow-hidden border-2 border-primary/20 shrink-0">
+                <img src={patientPhotoAbdulhayot} alt={patient.full_name} className="h-full w-full object-cover object-[50%_25%] scale-150" />
+              </div>
             )}
             <span className="text-lg font-bold truncate">{patient.full_name}</span>
             <Badge className={`shrink-0 ${riskColorClass(patient.risk_level)}`}>{t(`risk.${patient.risk_level}`)}</Badge>
