@@ -26,6 +26,7 @@ import { updatePatient, deletePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
 import { riskColorClass } from "@/utils/risk";
 import { logAudit } from "@/services/auditService";
+import patientPhotoAbdulhayot from "@/assets/patient-photo-edited.jpg";
 import { computeRiskScore } from "@/services/riskSnapshotService";
 import type { RiskSnapshot } from "@/services/riskSnapshotService";
 import { triggerRiskRecalculation } from "@/services/riskRecalculationService";
