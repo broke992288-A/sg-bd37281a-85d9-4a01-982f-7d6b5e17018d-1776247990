@@ -229,9 +229,7 @@ export default function AddPatient() {
             {(["liver", "kidney"] as OrganType[]).map((o) => (
               <Card key={o} className="group cursor-pointer border-2 border-transparent transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10" onClick={() => selectOrgan(o)}>
                 <CardHeader className="items-center text-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary text-3xl font-bold transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                    {o === "liver" ? "🫁" : "🫘"}
-                  </div>
+                  <img src={o === "liver" ? liverIcon : kidneyIcon} alt={o} className="h-20 w-20 rounded-2xl object-contain" />
                   <CardTitle className="text-xl mt-4">{o === "liver" ? t("add.liverTransplant") : t("add.kidneyTransplant")}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
