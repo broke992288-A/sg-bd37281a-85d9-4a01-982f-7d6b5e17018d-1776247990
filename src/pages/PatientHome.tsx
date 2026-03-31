@@ -7,6 +7,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useLinkedPatient } from "@/hooks/usePatients";
 import { usePatientHomeLabs, usePatientHomeEvents } from "@/hooks/usePatientDetail";
 import { riskColorClass } from "@/utils/risk";
+import patientPhotoAbdulhayot from "@/assets/patient-photo-edited.jpg";
 
 export default function PatientHome() {
   const { t } = useLanguage();
@@ -28,7 +29,15 @@ export default function PatientHome() {
         ) : (
           <>
             <Card>
-              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><User className="h-5 w-5 text-primary" />{t("home.healthStatus")}</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-lg flex items-center gap-2">
+                {patient.full_name.includes("bdulhayot") ? (
+                  <div className="h-10 w-10 rounded-lg overflow-hidden border border-primary/20 shrink-0">
+                    <img src={patientPhotoAbdulhayot} alt={patient.full_name} className="h-full w-full object-cover object-[50%_0%] scale-125" />
+                  </div>
+                ) : (
+                  <User className="h-5 w-5 text-primary" />
+                )}
+                {t("home.healthStatus")}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.name")}</span><span className="font-medium">{patient.full_name}</span></div>
                 <div className="flex items-center justify-between"><span className="text-muted-foreground">{t("home.organ")}</span><span className="font-medium">{t(`organ.${patient.organ_type}`)}</span></div>
