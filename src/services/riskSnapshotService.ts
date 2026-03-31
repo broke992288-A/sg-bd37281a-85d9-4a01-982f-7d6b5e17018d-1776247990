@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { LabResult } from "@/types/patient";
 import { fetchClinicalThresholds, evaluateValue, type ClinicalThreshold } from "@/services/clinicalThresholdService";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 export const CURRENT_ALGORITHM_VERSION = "v2.0-kdigo2024";
 
@@ -15,10 +16,16 @@ export interface RiskSnapshot {
   ast: number | null;
   total_bilirubin: number | null;
   tacrolimus_level: number | null;
-  details: Record<string, any>;
+  details: RiskDetails;
   trend_flags: string[];
   algorithm_version: string;
   created_at: string;
+}
+
+export interface RiskDetails {
+  flags?: string[];
+  explanations?: RiskExplanation[];
+  [key: string]: unknown;
 }
 
 export interface RiskExplanation {
@@ -148,17 +155,11 @@ export async function computeRiskScoreAsync(
 
   const organThresholds = thresholds.filter((t) => t.organ_type === organType);
 
-  // If we have DB thresholds, use them; otherwise fall back to sync version
   if (organThresholds.length > 0) {
     return computeRiskWithDbThresholds(organType, lab, patient, historicalLabs, organThresholds);
   }
 
-  // Fallback to hardcoded
   return computeRiskScore(organType, lab, patient, historicalLabs);
-}
-
-function getThresholdFor(thresholds: ClinicalThreshold[], param: string): ClinicalThreshold | undefined {
-  return thresholds.find((t) => t.parameter === param);
 }
 
 function computeRiskWithDbThresholds(
@@ -173,7 +174,6 @@ function computeRiskWithDbThresholds(
   const explanations: RiskExplanation[] = [];
   const trendHistory = normalizeHistoricalLabs(historicalLabs);
 
-  // --- Time since transplant ---
   const daysSinceTx = daysSinceDate(patient.transplant_date);
   if (daysSinceTx !== null && daysSinceTx < 90) {
     score += 10;
@@ -187,27 +187,15 @@ function computeRiskWithDbThresholds(
     });
   }
 
-  // Map lab fields to threshold parameters
   const labParamMap: Record<string, number | null | undefined> = {
     tacrolimus: lab.tacrolimus_level,
-    alt: lab.alt,
-    ast: lab.ast,
-    total_bilirubin: lab.total_bilirubin,
-    direct_bilirubin: lab.direct_bilirubin,
-    creatinine: lab.creatinine,
-    egfr: lab.egfr,
-    potassium: lab.potassium,
-    proteinuria: lab.proteinuria,
-    hb: lab.hb,
-    albumin: lab.albumin,
-    platelets: lab.platelets,
-    inr: lab.inr,
-    alp: lab.alp,
-    ggt: lab.ggt,
-    crp: lab.crp,
+    alt: lab.alt, ast: lab.ast,
+    total_bilirubin: lab.total_bilirubin, direct_bilirubin: lab.direct_bilirubin,
+    creatinine: lab.creatinine, egfr: lab.egfr, potassium: lab.potassium,
+    proteinuria: lab.proteinuria, hb: lab.hb, albumin: lab.albumin,
+    platelets: lab.platelets, inr: lab.inr, alp: lab.alp, ggt: lab.ggt, crp: lab.crp,
   };
 
-  // Evaluate each parameter against its threshold
   for (const threshold of thresholds) {
     const paramKey = threshold.parameter === "tacrolimus" ? "tacrolimus" : threshold.parameter;
     const value = labParamMap[paramKey];
@@ -229,7 +217,6 @@ function computeRiskWithDbThresholds(
       });
     }
 
-    // Trend analysis over a rolling 5-test window (current + up to 4 prior labs)
     if (threshold.trend_threshold_pct != null) {
       const trendSignal = getWindowTrendSignal(value, trendHistory, threshold.parameter, threshold.trend_threshold_pct, threshold.trend_direction);
 
@@ -248,7 +235,6 @@ function computeRiskWithDbThresholds(
     }
   }
 
-  // Clinical factors
   if ((patient.transplant_number ?? 1) >= 2) {
     score += 15;
     flags.push("Re-transplant patient");
@@ -261,7 +247,6 @@ function computeRiskWithDbThresholds(
     explanations.push({ key: "dialysis_history", message: "History of dialysis — higher baseline risk", severity: "warning", guideline: "KDIGO 2024" });
   }
 
-  // Multiple abnormal values bonus
   const abnormalCount = explanations.filter((e) => e.severity === "critical" || e.severity === "warning").length;
   if (abnormalCount >= 3) {
     score += 10;
@@ -370,49 +355,76 @@ export async function insertRiskSnapshot(data: {
   ast?: number | null;
   total_bilirubin?: number | null;
   tacrolimus_level?: number | null;
-  details?: Record<string, any>;
+  details?: RiskDetails;
   trend_flags?: string[];
   algorithm_version?: string;
 }) {
-  const payload = {
-    ...data,
-    trend_flags: data.trend_flags ?? [],
+  const payload: TablesInsert<"risk_snapshots"> = {
+    patient_id: data.patient_id,
+    lab_result_id: data.lab_result_id ?? null,
+    score: data.score,
+    risk_level: data.risk_level,
+    creatinine: data.creatinine ?? null,
+    alt: data.alt ?? null,
+    ast: data.ast ?? null,
+    total_bilirubin: data.total_bilirubin ?? null,
+    tacrolimus_level: data.tacrolimus_level ?? null,
+    details: (data.details ?? {}) as Record<string, unknown>,
+    trend_flags: (data.trend_flags ?? []) as unknown as Record<string, unknown>,
     algorithm_version: data.algorithm_version ?? CURRENT_ALGORITHM_VERSION,
   };
   const { data: row, error } = await supabase
     .from("risk_snapshots")
-    .insert(payload as any)
+    .insert(payload)
     .select()
     .single();
   if (error) throw error;
   return row;
 }
 
+/** Shape of a risk snapshot row joined with lab_results recorded_at */
+interface RiskSnapshotWithLab {
+  id: string;
+  patient_id: string;
+  lab_result_id: string | null;
+  score: number;
+  risk_level: string;
+  creatinine: number | null;
+  alt: number | null;
+  ast: number | null;
+  total_bilirubin: number | null;
+  tacrolimus_level: number | null;
+  details: Record<string, unknown> | null;
+  trend_flags: unknown;
+  algorithm_version: string | null;
+  created_at: string;
+  lab_results: { recorded_at: string } | null;
+}
+
 export async function fetchRiskSnapshots(patientId: string, limit = 10) {
-  // Fetch snapshots with their linked lab's recorded_at for proper clinical ordering
   const { data, error } = await supabase
     .from("risk_snapshots")
     .select("*, lab_results!risk_snapshots_lab_result_id_fkey(recorded_at)")
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
-    .limit(limit * 2); // fetch extra to ensure we have enough after sorting
+    .limit(limit * 2);
   if (error) throw error;
 
-  // Sort by lab recorded_at (clinically latest first), fall back to created_at
-  const sorted = (data ?? [])
-    .sort((a: any, b: any) => {
+  const rows = (data ?? []) as unknown as RiskSnapshotWithLab[];
+
+  const sorted = rows
+    .sort((a, b) => {
       const aDate = a.lab_results?.recorded_at ?? a.created_at;
       const bDate = b.lab_results?.recorded_at ?? b.created_at;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     })
     .slice(0, limit)
-    .map(({ lab_results, ...rest }: any) => rest);
+    .map(({ lab_results: _lr, ...rest }) => rest);
 
   return sorted as RiskSnapshot[];
 }
 
 export async function fetchLatestRiskSnapshot(patientId: string) {
-  // Get the snapshot linked to the most recent lab by recorded_at
   const { data, error } = await supabase
     .from("risk_snapshots")
     .select("*, lab_results!risk_snapshots_lab_result_id_fkey(recorded_at)")
@@ -422,13 +434,14 @@ export async function fetchLatestRiskSnapshot(patientId: string) {
   if (error) throw error;
   if (!data || data.length === 0) return null;
 
-  // Sort by lab recorded_at and pick the clinically latest
-  const sorted = data.sort((a: any, b: any) => {
+  const rows = data as unknown as RiskSnapshotWithLab[];
+
+  const sorted = rows.sort((a, b) => {
     const aDate = a.lab_results?.recorded_at ?? a.created_at;
     const bDate = b.lab_results?.recorded_at ?? b.created_at;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
 
-  const { lab_results, ...snapshot } = sorted[0] as any;
+  const { lab_results: _lr, ...snapshot } = sorted[0];
   return snapshot as RiskSnapshot;
 }

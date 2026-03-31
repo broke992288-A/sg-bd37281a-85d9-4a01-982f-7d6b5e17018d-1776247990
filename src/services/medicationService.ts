@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export interface Medication {
   id: string;
@@ -39,29 +40,20 @@ export async function fetchPatientMedications(patientId: string) {
   return (data ?? []) as Medication[];
 }
 
-export async function insertMedication(med: {
-  patient_id: string;
-  medication_name: string;
-  dosage: string;
-  frequency: string;
-  start_date: string;
-  end_date?: string | null;
-  prescribed_by?: string | null;
-  notes?: string | null;
-}) {
+export async function insertMedication(med: TablesInsert<"medications">) {
   const { data, error } = await supabase
     .from("medications")
-    .insert(med as any)
+    .insert(med)
     .select("id")
     .single();
   if (error) throw error;
   return data;
 }
 
-export async function updateMedication(id: string, updates: Partial<Medication>) {
+export async function updateMedication(id: string, updates: TablesUpdate<"medications">) {
   const { error } = await supabase
     .from("medications")
-    .update(updates as any)
+    .update(updates)
     .eq("id", id);
   if (error) throw error;
 }
@@ -71,19 +63,10 @@ export async function deleteMedication(id: string) {
   if (error) throw error;
 }
 
-export async function insertMedicationChange(change: {
-  medication_id: string;
-  patient_id: string;
-  changed_by: string;
-  old_dosage: string;
-  new_dosage: string;
-  old_frequency?: string | null;
-  new_frequency?: string | null;
-  reason?: string | null;
-}) {
+export async function insertMedicationChange(change: TablesInsert<"medication_changes">) {
   const { error } = await supabase
     .from("medication_changes")
-    .insert(change as any);
+    .insert(change);
   if (error) throw error;
 }
 

@@ -20,7 +20,7 @@ export async function fetchAdherenceRecords(
   toDate?: string
 ): Promise<MedicationAdherence[]> {
   let query = supabase
-    .from("medication_adherence" as any)
+    .from("medication_adherence")
     .select("*")
     .eq("patient_id", patientId)
     .order("scheduled_date", { ascending: false });
@@ -30,7 +30,7 @@ export async function fetchAdherenceRecords(
 
   const { data, error } = await query.limit(100);
   if (error) throw error;
-  return (data ?? []) as unknown as MedicationAdherence[];
+  return (data ?? []) as MedicationAdherence[];
 }
 
 /**
@@ -49,13 +49,13 @@ export async function recordAdherence(record: {
   };
 
   const { data, error } = await supabase
-    .from("medication_adherence" as any)
-    .upsert(payload as any, { onConflict: "medication_id,scheduled_date" })
+    .from("medication_adherence")
+    .upsert(payload, { onConflict: "medication_id,scheduled_date" })
     .select()
     .single();
 
   if (error) throw error;
-  return data as unknown as MedicationAdherence;
+  return data as MedicationAdherence;
 }
 
 /**

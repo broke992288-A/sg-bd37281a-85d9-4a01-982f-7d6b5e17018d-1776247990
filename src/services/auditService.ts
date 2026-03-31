@@ -19,15 +19,14 @@ export async function logAudit(params: {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase.from("audit_logs" as any).insert({
+    await supabase.from("audit_logs").insert({
       user_id: user.id,
       action: params.action,
       entity_type: params.entityType ?? null,
       entity_id: params.entityId ?? null,
       metadata: params.metadata ?? {},
-    } as any);
+    });
   } catch (err) {
-    // Audit logging should never break the app
     console.error("[Audit] Failed to log:", params.action, err);
   }
 }

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { LabResult } from "@/types/patient";
 
 export interface PredictionResult {
   prediction_risk: "low" | "medium" | "high";
@@ -13,7 +14,7 @@ export interface PredictionResult {
 export async function fetchPrediction(
   patientId: string,
   organType: string,
-  labs: any[],
+  labs: LabResult[],
   language: string = "en",
   patientData?: { blood_type?: string | null; donor_blood_type?: string | null; titer_therapy?: boolean | null },
 ): Promise<PredictionResult> {

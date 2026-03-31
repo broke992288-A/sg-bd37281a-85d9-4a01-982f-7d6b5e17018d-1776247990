@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/types/roles";
 import { fetchUserRoles, upsertUserRole, signInWithPassword, signUpWithEmail, signOutUser } from "@/services/authService";
 
@@ -17,15 +17,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const ROLE_PRIORITY: AppRole[] = ["admin", "doctor", "support", "patient"];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const ROLE_PRIORITY: AppRole[] = ["admin", "doctor", "support", "patient"];
-
-  const fetchRole = async (userId: string) => {
+  const fetchRole = useCallback(async (userId: string) => {
     const data = await fetchUserRoles(userId);
     if (data.length > 0) {
       const roles = data.map((d) => d.role as AppRole);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setRole(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchRole]);
 
   const signIn = async (identifier: string, password: string) => {
     await signInWithPassword(identifier, password);
