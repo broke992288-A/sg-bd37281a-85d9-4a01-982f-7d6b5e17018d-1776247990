@@ -1,7 +1,6 @@
 /**
  * Clinical Threshold Service
  * Reads thresholds from the clinical_thresholds database table.
- * Replaces hardcoded thresholds in riskSnapshotService.ts
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -30,11 +29,10 @@ export interface ClinicalThreshold {
 // In-memory cache for thresholds (refreshed every 5 minutes)
 let cachedThresholds: ClinicalThreshold[] | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 
 /**
  * Fetch all clinical thresholds from the database.
- * Uses in-memory cache to avoid repeated queries.
  */
 export async function fetchClinicalThresholds(): Promise<ClinicalThreshold[]> {
   const now = Date.now();
@@ -43,16 +41,15 @@ export async function fetchClinicalThresholds(): Promise<ClinicalThreshold[]> {
   }
 
   const { data, error } = await supabase
-    .from("clinical_thresholds" as any)
+    .from("clinical_thresholds")
     .select("*");
 
   if (error) {
     console.error("Failed to fetch clinical thresholds:", error);
-    // Return cached data if available, otherwise empty
     return cachedThresholds ?? [];
   }
 
-  cachedThresholds = (data ?? []) as unknown as ClinicalThreshold[];
+  cachedThresholds = (data ?? []) as ClinicalThreshold[];
   cacheTimestamp = now;
   return cachedThresholds;
 }
@@ -75,7 +72,6 @@ export async function getThreshold(parameter: string, organType: string): Promis
 
 /**
  * Evaluate a lab value against its threshold.
- * Returns the status and relevant threshold info.
  */
 export function evaluateValue(
   value: number | null | undefined,
@@ -90,7 +86,6 @@ export function evaluateValue(
 
   const guideline = `${threshold.guideline_source} ${threshold.guideline_year}`;
 
-  // Check critical first (more severe)
   if (threshold.critical_min != null && value >= threshold.critical_min) {
     return {
       status: "critical",
@@ -108,7 +103,6 @@ export function evaluateValue(
     };
   }
 
-  // Check warning
   if (threshold.warning_min != null && value >= threshold.warning_min) {
     return {
       status: "warning",
@@ -130,7 +124,7 @@ export function evaluateValue(
 }
 
 /**
- * Invalidate the threshold cache (call after admin updates thresholds).
+ * Invalidate the threshold cache.
  */
 export function invalidateThresholdCache(): void {
   cachedThresholds = null;

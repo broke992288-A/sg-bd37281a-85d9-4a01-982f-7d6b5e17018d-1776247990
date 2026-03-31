@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 export interface LabSchedule {
   id: string;
@@ -8,6 +9,12 @@ export interface LabSchedule {
   completed_lab_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface OverdueSchedule extends LabSchedule {
+  patient_name: string;
+  organ_type: string;
+  last_lab_date: string | null;
 }
 
 export async function fetchLabSchedules(patientId: string): Promise<LabSchedule[]> {
@@ -20,10 +27,7 @@ export async function fetchLabSchedules(patientId: string): Promise<LabSchedule[
   return (data ?? []) as unknown as LabSchedule[];
 }
 
-export async function fetchAllOverdueSchedules(): Promise<(LabSchedule & { patient_name: string; organ_type: string; last_lab_date: string | null })[]> {
-  const today = new Date().toISOString().split("T")[0];
-  
-  // Fetch overdue and due_soon schedules
+export async function fetchAllOverdueSchedules(): Promise<OverdueSchedule[]> {
   const { data: schedules, error } = await supabase
     .from("lab_schedules")
     .select("*")
@@ -34,14 +38,12 @@ export async function fetchAllOverdueSchedules(): Promise<(LabSchedule & { patie
   if (error) throw error;
   if (!schedules || schedules.length === 0) return [];
 
-  // Get patient details
-  const patientIds = [...new Set(schedules.map((s: any) => s.patient_id))];
+  const patientIds = [...new Set(schedules.map((s) => s.patient_id))];
   const { data: patients } = await supabase
     .from("patients")
     .select("id, full_name, organ_type")
     .in("id", patientIds);
 
-  // Get latest lab dates
   const { data: labs } = await supabase
     .from("lab_results")
     .select("patient_id, recorded_at")
@@ -54,11 +56,10 @@ export async function fetchAllOverdueSchedules(): Promise<(LabSchedule & { patie
     if (!lastLabMap.has(l.patient_id)) lastLabMap.set(l.patient_id, l.recorded_at);
   });
 
-  // Compute actual status based on date
-  return schedules.map((s: any) => {
+  return schedules.map((s) => {
     const patient = patientMap.get(s.patient_id);
     const diffDays = Math.floor((new Date(s.scheduled_date).getTime() - Date.now()) / 86400000);
-    let computedStatus = s.status;
+    let computedStatus: LabSchedule["status"] = s.status as LabSchedule["status"];
     if (diffDays < 0) computedStatus = "overdue";
     else if (diffDays <= 3) computedStatus = "due_soon";
 
@@ -68,12 +69,12 @@ export async function fetchAllOverdueSchedules(): Promise<(LabSchedule & { patie
       patient_name: patient?.full_name ?? "Unknown",
       organ_type: patient?.organ_type ?? "kidney",
       last_lab_date: lastLabMap.get(s.patient_id) ?? null,
-    };
-  }) as any[];
+    } as OverdueSchedule;
+  });
 }
 
 export async function updateScheduleStatus(scheduleId: string, status: string, completedLabId?: string) {
-  const updates: any = { status, updated_at: new Date().toISOString() };
+  const updates: TablesUpdate<"lab_schedules"> = { status, updated_at: new Date().toISOString() };
   if (completedLabId) updates.completed_lab_id = completedLabId;
   const { error } = await supabase
     .from("lab_schedules")
@@ -92,8 +93,6 @@ export async function generateScheduleForPatient(patientId: string, transplantDa
 
 /** Auto-complete schedules when lab results match a scheduled date */
 export async function autoCompleteSchedules(patientId: string, labId: string, labDate: string) {
-  const labDateOnly = new Date(labDate).toISOString().split("T")[0];
-  // Find schedules within ±3 days of the lab date
   const startDate = new Date(new Date(labDate).getTime() - 3 * 86400000).toISOString().split("T")[0];
   const endDate = new Date(new Date(labDate).getTime() + 3 * 86400000).toISOString().split("T")[0];
 

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 export interface PatientAlert {
   id: string;
@@ -12,15 +13,8 @@ export interface PatientAlert {
   created_at: string;
 }
 
-export async function insertPatientAlert(data: {
-  patient_id: string;
-  risk_snapshot_id?: string | null;
-  alert_type?: string;
-  severity: string;
-  title: string;
-  message?: string | null;
-}) {
-  const { error } = await supabase.from("patient_alerts").insert(data as any);
+export async function insertPatientAlert(data: TablesInsert<"patient_alerts">) {
+  const { error } = await supabase.from("patient_alerts").insert(data);
   if (error) throw error;
 }
 
@@ -48,7 +42,7 @@ export async function fetchUnreadAlertCount(patientId: string) {
 export async function markAlertRead(alertId: string) {
   const { error } = await supabase
     .from("patient_alerts")
-    .update({ is_read: true } as any)
+    .update({ is_read: true })
     .eq("id", alertId);
   if (error) throw error;
 }
@@ -56,7 +50,7 @@ export async function markAlertRead(alertId: string) {
 export async function markAllAlertsRead(patientId?: string) {
   let query = supabase
     .from("patient_alerts")
-    .update({ is_read: true } as any)
+    .update({ is_read: true })
     .eq("is_read", false);
   if (patientId) {
     query = query.eq("patient_id", patientId);

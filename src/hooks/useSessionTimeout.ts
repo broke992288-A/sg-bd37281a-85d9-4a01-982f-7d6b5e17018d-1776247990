@@ -19,7 +19,7 @@ export function useSessionTimeout() {
   }, []);
 
   useEffect(() => {
-    const events = ["mousedown", "keydown", "scroll", "touchstart"];
+    const events = ["mousedown", "keydown", "scroll", "touchstart"] as const;
     events.forEach((e) => window.addEventListener(e, resetTimer));
     resetTimer();
 

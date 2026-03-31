@@ -11,16 +11,21 @@ export interface RecalculationResult {
   error?: string;
 }
 
+interface RecalculationBody {
+  patient_id?: string;
+  offset?: number;
+  limit?: number;
+}
+
 /**
  * Trigger historical risk recalculation for a single patient or a batch.
- * Uses supabase.functions.invoke() to avoid CORS issues on mobile.
  */
 export async function triggerRiskRecalculation(
   patientId?: string,
   offset?: number,
   limit?: number
 ): Promise<RecalculationResult> {
-  const body: Record<string, any> = {};
+  const body: RecalculationBody = {};
   if (patientId) body.patient_id = patientId;
   if (offset != null) body.offset = offset;
   if (limit != null) body.limit = limit;
@@ -38,7 +43,6 @@ export async function triggerRiskRecalculation(
 
 /**
  * Recalculate all patients in batches of 20.
- * Calls recalculate-risk repeatedly until all patients are processed.
  */
 export async function triggerFullRecalculation(
   onProgress?: (processed: number, total: number) => void

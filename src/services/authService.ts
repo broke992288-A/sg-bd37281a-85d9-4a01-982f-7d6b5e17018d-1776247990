@@ -1,4 +1,7 @@
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 /** Convert a phone number to a pseudo-email for Supabase Auth */
 export function phoneToEmail(phone: string): string {
@@ -7,7 +10,6 @@ export function phoneToEmail(phone: string): string {
 }
 
 export async function signInWithPassword(identifier: string, password: string) {
-  // If identifier looks like a phone number, convert to pseudo-email
   const email = identifier.includes("@") ? identifier : phoneToEmail(identifier);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
@@ -87,9 +89,9 @@ export async function fetchUserRoles(userId: string) {
   return data ?? [];
 }
 
-export async function upsertUserRole(userId: string, role: string) {
+export async function upsertUserRole(userId: string, role: AppRole) {
   const { error } = await supabase
     .from("user_roles")
-    .upsert({ user_id: userId, role: role as any }, { onConflict: "user_id,role" });
+    .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
   if (error) throw error;
 }
