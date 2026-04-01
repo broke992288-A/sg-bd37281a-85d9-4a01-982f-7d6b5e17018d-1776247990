@@ -1184,6 +1184,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.no": "Yo'q",
     "add.returnDialysisDate": "Dializ ga qaytish sanasi",
     "add.biopsyResult": "Biopsiya natijasi (ixtiyoriy)",
+    "add.country": "Mamlakat",
     "add.bloodInfo": "Qon guruhi ma'lumotlari",
     "add.bloodType": "Bemor qon guruhi",
     "add.donorBloodType": "Donor qon guruhi",
