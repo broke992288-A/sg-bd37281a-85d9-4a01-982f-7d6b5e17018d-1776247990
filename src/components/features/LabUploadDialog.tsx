@@ -56,6 +56,7 @@ interface Props {
   organType?: string;
   patientData?: { transplant_number?: number | null; dialysis_history?: boolean | null };
   onLabAdded: () => void;
+  patientCountry?: string;
 }
 
 type Step = "upload" | "processing" | "confirm";
