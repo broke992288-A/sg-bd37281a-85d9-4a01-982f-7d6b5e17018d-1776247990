@@ -15,7 +15,16 @@ import { updateLabDate, updateLabResult, deleteLabResult } from "@/services/labS
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import type { LabResult } from "@/types/patient";
 
-const ALL_HEADERS = [
+/** Numeric fields on LabResult that can appear as table columns */
+type LabNumericKey = keyof Pick<LabResult,
+  "tacrolimus_level" | "cyclosporine" | "hb" | "tlc" | "platelets" | "pti" | "inr" |
+  "total_bilirubin" | "direct_bilirubin" | "ast" | "alt" | "alp" | "ggt" |
+  "total_protein" | "albumin" | "urea" | "creatinine" | "egfr" |
+  "sodium" | "potassium" | "calcium" | "magnesium" | "phosphorus" |
+  "uric_acid" | "crp" | "esr" | "ldh" | "ammonia" | "proteinuria"
+>;
+
+const ALL_HEADERS: { key: LabNumericKey; label: string }[] = [
   { key: "tacrolimus_level", label: "Tacrolimus" },
   { key: "cyclosporine", label: "Cyclosporine" },
   { key: "hb", label: "HB" },
@@ -86,7 +95,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
   }
 
   if (showAll) {
-    headers = headers.filter(h => sorted.some(lab => (lab as any)[h.key] != null));
+    headers = headers.filter(h => sorted.some(lab => lab[h.key] != null));
   }
 
   const startEdit = (lab: LabResult) => {
@@ -94,7 +103,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       date: new Date(lab.recorded_at).toISOString().split("T")[0],
     };
     headers.forEach(h => {
-      const val = (lab as any)[h.key];
+      const val = lab[h.key];
       values[h.key] = val != null ? String(val) : "";
     });
     setEditValues(values);
@@ -113,7 +122,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       const original = labs.find(l => l.id === editingId);
       if (!original) return;
 
-      const updates: Record<string, any> = {};
+      const updates: Partial<Record<LabNumericKey, number | null>> & { recorded_at?: string } = {};
 
       // Check date change
       const origDate = new Date(original.recorded_at).toISOString().split("T")[0];
@@ -124,7 +133,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       // Check lab value changes
       headers.forEach(h => {
         const newStr = editValues[h.key]?.trim() ?? "";
-        const origVal = (original as any)[h.key];
+        const origVal = original[h.key];
         const newVal = newStr === "" ? null : parseFloat(newStr);
 
         if (newStr === "" && origVal == null) return; // both null, no change
@@ -142,8 +151,9 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       }
 
       setEditingId(null);
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -157,8 +167,9 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       toast({ title: t("detail.labDeleted") });
       setDeleteId(null);
       onLabChanged?.();
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -233,7 +244,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
                           </TableCell>
                         );
                       }
-                      const val = (lab as any)[h.key];
+                      const val = lab[h.key];
                       const colorClass = val != null ? getCellColor(h.key, val) : "";
                       return (
                         <TableCell key={h.key} className={`text-center ${colorClass}`}>

@@ -4,7 +4,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import type { LabResult } from "@/types/patient";
 import { REFERENCE_RANGES } from "./LabResultsTable";
 
-const CHART_MARKERS = [
+type ChartableKey = keyof Pick<LabResult, "creatinine" | "alt" | "ast" | "total_bilirubin" | "tacrolimus_level" | "potassium" | "urea">;
+
+const CHART_MARKERS: { key: ChartableKey; color: string }[] = [
   { key: "creatinine", color: "#ef4444" },
   { key: "alt", color: "#f59e0b" },
   { key: "ast", color: "#8b5cf6" },
@@ -22,7 +24,7 @@ export default function LabTrendCharts({ labs }: Props) {
   const { t } = useLanguage();
   const sortedLabs = [...labs].sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime());
 
-  const charts = CHART_MARKERS.filter((m) => sortedLabs.some((l) => (l as any)[m.key] != null));
+  const charts = CHART_MARKERS.filter((m) => sortedLabs.some((l) => l[m.key] != null));
 
   if (charts.length === 0) return <p className="text-muted-foreground text-sm">{t("lab.noTrendData")}</p>;
 
@@ -31,10 +33,10 @@ export default function LabTrendCharts({ labs }: Props) {
       {charts.map(({ key, color }) => {
         const ref = REFERENCE_RANGES[key];
         const data = sortedLabs
-          .filter((l) => (l as any)[key] != null)
+          .filter((l) => l[key] != null)
           .map((l) => ({
             date: new Date(l.recorded_at).toLocaleDateString(),
-            value: (l as any)[key] as number,
+            value: l[key] as number,
           }));
 
         if (data.length < 1) return null;

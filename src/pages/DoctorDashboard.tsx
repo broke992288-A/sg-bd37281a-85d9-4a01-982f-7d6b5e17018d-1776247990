@@ -36,7 +36,7 @@ export default function DoctorDashboard() {
   // Sort high-risk by risk_score descending
   const highRisk = patients
     .filter((p) => p.risk_level === "high")
-    .sort((a, b) => ((b as any).risk_score ?? 0) - ((a as any).risk_score ?? 0));
+    .sort((a, b) => (b.risk_score ?? 0) - (a.risk_score ?? 0));
   const mediumRisk = patients.filter((p) => p.risk_level === "medium");
   const pieData = [
     { name: t("dashboard.highRisk"), value: highRisk.length, color: "hsl(var(--destructive))" },
@@ -146,13 +146,13 @@ export default function DoctorDashboard() {
                     {highRisk.map((p) => {
                       const lab = labs[p.id];
                       const keyLab = p.organ_type === "liver" ? `Tac: ${lab?.tacrolimus_level ?? "—"}` : `Cr: ${lab?.creatinine ?? "—"}`;
-                      const lastEval = (p as any).last_risk_evaluation;
+                      const lastEval = p.last_risk_evaluation;
                       return (
                         <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/patient/${p.id}`)}>
                           <TableCell className="font-medium">{p.full_name}</TableCell>
                           <TableCell>{t(`organ.${p.organ_type}`)}</TableCell>
                           <TableCell>
-                            <span className="font-bold text-destructive">{(p as any).risk_score ?? "—"}</span>
+                            <span className="font-bold text-destructive">{p.risk_score ?? "—"}</span>
                             <span className="text-muted-foreground text-xs">/100</span>
                           </TableCell>
                           <TableCell>{keyLab}</TableCell>
