@@ -36,6 +36,7 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
   const [bloodType, setBloodType] = useState(patient.blood_type || "");
   const [donorBloodType, setDonorBloodType] = useState(patient.donor_blood_type || "");
   const [titerTherapy, setTiterTherapy] = useState(patient.titer_therapy || false);
+  const [country, setCountry] = useState(patient.country || "uzbekistan");
 
   const handleSave = async () => {
     if (!fullName.trim()) {
