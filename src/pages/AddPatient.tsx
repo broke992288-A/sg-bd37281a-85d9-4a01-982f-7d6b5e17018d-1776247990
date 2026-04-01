@@ -184,7 +184,7 @@ export default function AddPatient() {
         phone: form.phone || null,
       });
 
-      const labData: any = { patient_id: patient.id };
+      const labData: TablesInsert<"lab_results"> = { patient_id: patient.id };
       if (organ === "liver") {
         labData.tacrolimus_level = parseFloat(form.tacrolimus_level) || null;
         labData.alt = parseFloat(form.alt) || null;
