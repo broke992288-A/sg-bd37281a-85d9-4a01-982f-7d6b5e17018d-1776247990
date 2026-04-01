@@ -85,7 +85,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.gender": "Gender",
     "add.male": "Male",
     "add.female": "Female",
-    "add.other": "Other",
+    
     "add.transplantDetails": "Transplant Details",
     "add.transplantNumber": "Transplant Number",
     "add.transplantDate": "Transplant Date",
@@ -443,7 +443,7 @@ const translations: Record<Language, Record<string, string>> = {
     "organ.kidney": "Kidney",
     "gender.male": "Male",
     "gender.female": "Female",
-    "gender.other": "Other",
+    
     // Risk level labels
     "risk.high": "HIGH",
     "risk.medium": "MEDIUM",
@@ -642,7 +642,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.gender": "Пол",
     "add.male": "Мужской",
     "add.female": "Женский",
-    "add.other": "Другой",
+    
     "add.transplantDetails": "Детали трансплантации",
     "add.transplantNumber": "Номер трансплантации",
     "add.transplantDate": "Дата трансплантации",
@@ -981,7 +981,7 @@ const translations: Record<Language, Record<string, string>> = {
     "organ.kidney": "Почка",
     "gender.male": "Мужской",
     "gender.female": "Женский",
-    "gender.other": "Другой",
+    
     "risk.high": "ВЫСОКИЙ",
     "risk.medium": "СРЕДНИЙ",
     "risk.low": "НИЗКИЙ",
@@ -1172,7 +1172,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.gender": "Jinsi",
     "add.male": "Erkak",
     "add.female": "Ayol",
-    "add.other": "Boshqa",
+    
     "add.transplantDetails": "Transplantatsiya tafsilotlari",
     "add.transplantNumber": "Transplantatsiya raqami",
     "add.transplantDate": "Transplantatsiya sanasi",
@@ -1511,7 +1511,7 @@ const translations: Record<Language, Record<string, string>> = {
     "organ.kidney": "Buyrak",
     "gender.male": "Erkak",
     "gender.female": "Ayol",
-    "gender.other": "Boshqa",
+    
     "risk.high": "YUQORI",
     "risk.medium": "O'RTA",
     "risk.low": "PAST",
