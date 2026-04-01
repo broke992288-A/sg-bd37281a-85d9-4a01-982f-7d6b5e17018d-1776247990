@@ -26,7 +26,7 @@ export default function ResetPassword() {
       await updateUserPassword(password);
       toast({ title: t("login.passwordUpdated"), description: t("login.passwordUpdatedDesc") });
       navigate("/login");
-    } catch (err: any) { toast({ title: t("common.error"), description: err.message, variant: "destructive" }); }
+    } catch (err: unknown) { const message = err instanceof Error ? err.message : String(err); toast({ title: t("common.error"), description: message, variant: "destructive" }); }
     finally { setLoading(false); }
   };
 

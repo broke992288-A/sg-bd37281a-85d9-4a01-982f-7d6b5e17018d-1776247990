@@ -210,8 +210,9 @@ export default function AddPatient() {
 
       toast({ title: t("add.patientAdded"), description: `${form.full_name} — ${t("home.riskLevel")}: ${t(`risk.${riskLevel}`)}` });
       navigate("/doctor-dashboard");
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally { setSaving(false); }
   };
 

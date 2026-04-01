@@ -164,8 +164,9 @@ export default function PatientDetail() {
                     await deletePatient(patient.id);
                     toast({ title: t("detail.patientDeleted") });
                     navigate("/patients");
-                  } catch (err: any) {
-                    toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+                  } catch (err: unknown) {
+                    const message = err instanceof Error ? err.message : String(err);
+                    toast({ title: t("common.error"), description: message, variant: "destructive" });
                   }
                 }}>{t("common.delete")}</AlertDialogAction>
               </AlertDialogFooter>

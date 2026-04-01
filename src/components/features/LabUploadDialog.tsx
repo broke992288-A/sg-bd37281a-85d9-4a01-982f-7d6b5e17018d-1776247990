@@ -435,8 +435,9 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
       reset();
       setOpen(false);
       onLabAdded();
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setSaving(false);
     }

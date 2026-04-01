@@ -30,9 +30,10 @@ export default function RiskRecalculationCard() {
         description: `${res.totalProcessed} бемор, ${res.totalSnapshots} snapshot, ${res.totalAlerts} алерт`,
       });
       qc.invalidateQueries();
-    } catch (err: any) {
-      setError(err.message);
-      toast({ title: "Хатолик", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast({ title: "Хатолик", description: message, variant: "destructive" });
     } finally {
       setRunning(false);
     }
