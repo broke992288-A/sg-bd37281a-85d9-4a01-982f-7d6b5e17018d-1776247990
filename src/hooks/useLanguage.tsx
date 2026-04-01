@@ -653,6 +653,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.no": "Нет",
     "add.returnDialysisDate": "Дата возвращения на диализ",
     "add.biopsyResult": "Результат биопсии (необязательно)",
+    "add.country": "Страна",
     "add.bloodInfo": "Информация о группе крови",
     "add.bloodType": "Группа крови пациента",
     "add.donorBloodType": "Группа крови донора",
