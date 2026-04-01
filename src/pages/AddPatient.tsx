@@ -22,6 +22,7 @@ import { calculateRisk } from "@/utils/risk";
 import { uzbekistanRegions } from "@/data/uzbekistanRegions";
 import { patientSchema, liverLabSchema, kidneyLabSchema } from "@/lib/validations";
 import type { OrganType } from "@/types/patient";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { preprocessLabImage } from "@/utils/imagePreprocess";
 
