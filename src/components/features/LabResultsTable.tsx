@@ -3,7 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { LabResult } from "@/types/patient";
 
-const REFERENCE_RANGES: Record<string, { min: number; max: number; unit: string; label: string }> = {
+/** Keys of LabResult that hold numeric lab values */
+type LabValueKey = keyof Pick<LabResult,
+  "hb" | "tlc" | "platelets" | "pti" | "inr" | "total_bilirubin" | "direct_bilirubin" |
+  "ast" | "alt" | "alp" | "ggt" | "total_protein" | "albumin" | "urea" | "creatinine" |
+  "egfr" | "sodium" | "potassium" | "calcium" | "magnesium" | "phosphorus" | "uric_acid" |
+  "crp" | "esr" | "ldh" | "ammonia" | "tacrolimus_level" | "cyclosporine" | "proteinuria"
+>;
+
+const REFERENCE_RANGES: Record<LabValueKey, { min: number; max: number; unit: string; label: string }> = {
   hb: { min: 12, max: 17, unit: "g/dL", label: "HB" },
   tlc: { min: 4, max: 11, unit: "×10³/µL", label: "TLC" },
   platelets: { min: 150, max: 400, unit: "×10³/µL", label: "Platelets" },
@@ -59,9 +67,9 @@ export default function LabResultsTable({ labs }: Props) {
   return (
     <div className="space-y-6">
       {labs.map((lab) => {
-        const entries = Object.entries(REFERENCE_RANGES)
+        const entries = (Object.entries(REFERENCE_RANGES) as [LabValueKey, { min: number; max: number; unit: string; label: string }][])
           .map(([key, ref]) => {
-            const val = (lab as any)[key];
+            const val = lab[key];
             if (val == null) return null;
             const status = getStatus(key, val, t);
             return { key, label: ref.label, value: val, unit: ref.unit, range: `${ref.min}–${ref.max}`, status };

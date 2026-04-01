@@ -87,8 +87,9 @@ export default function AddMedicationDialog({ patientId }: Props) {
       toast({ title: t("med.added") });
       setOpen(false);
       setSelectedMed(""); setCustomName(""); setSelectedDosage(""); setCustomDosage(""); setNotes(""); setErrors({});
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     }
   };
 

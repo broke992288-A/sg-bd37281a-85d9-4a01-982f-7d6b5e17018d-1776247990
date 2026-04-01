@@ -53,8 +53,9 @@ export default function ChangeDosageDialog({ medication }: Props) {
       toast({ title: t("med.dosageChanged") });
       setOpen(false);
       setReason("");
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     }
   };
 

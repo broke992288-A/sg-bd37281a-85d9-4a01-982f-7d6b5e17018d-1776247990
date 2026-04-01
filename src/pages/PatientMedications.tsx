@@ -148,10 +148,11 @@ export default function PatientMedications() {
                                         <AlertDialogAction onClick={async () => {
                                           try {
                                             const { updateMedication } = await import("@/services/medicationService");
-                                            await updateMedication(med.id, { is_active: false, end_date: new Date().toISOString().slice(0, 10) } as any);
+                                            await updateMedication(med.id, { is_active: false, end_date: new Date().toISOString().slice(0, 10) });
                                             queryClient.invalidateQueries({ queryKey: ["patient-medications", id] });
-                                          } catch (err: any) {
-                                            toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+                                          } catch (err: unknown) {
+                                            const message = err instanceof Error ? err.message : String(err);
+                                            toast({ title: t("common.error"), description: message, variant: "destructive" });
                                           }
                                         }}>{t("med.stop")}</AlertDialogAction>
                                       </AlertDialogFooter>

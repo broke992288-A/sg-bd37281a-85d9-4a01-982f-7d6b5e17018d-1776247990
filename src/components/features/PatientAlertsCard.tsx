@@ -30,8 +30,9 @@ export default function PatientAlertsCard({ patientId }: PatientAlertsCardProps)
     try {
       await markAllAlertsRead(patientId);
       invalidate(patientId);
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     }
   };
 

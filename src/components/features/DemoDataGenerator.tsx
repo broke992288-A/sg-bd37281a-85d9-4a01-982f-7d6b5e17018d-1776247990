@@ -46,9 +46,10 @@ export default function DemoDataGenerator() {
       setResult(res);
       toast({ title: "Demo маълумотлар яратилди ✅", description: `${res.patients} бемор, ${res.labs} таҳлил, ${res.alerts} алерт, ${res.medications} дори` });
       qc.invalidateQueries();
-    } catch (err: any) {
-      setError(err.message);
-      toast({ title: "Хатолик", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast({ title: "Хатолик", description: message, variant: "destructive" });
     } finally {
       setRunning(false);
       setProgress(null);

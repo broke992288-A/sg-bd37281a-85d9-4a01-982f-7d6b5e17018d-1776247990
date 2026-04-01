@@ -22,6 +22,7 @@ import { calculateRisk } from "@/utils/risk";
 import { uzbekistanRegions } from "@/data/uzbekistanRegions";
 import { patientSchema, liverLabSchema, kidneyLabSchema } from "@/lib/validations";
 import type { OrganType } from "@/types/patient";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { preprocessLabImage } from "@/utils/imagePreprocess";
 
@@ -94,9 +95,10 @@ export default function AddPatient() {
       } else {
         toast({ title: t("common.error"), description: t("upload.noValuesFound"), variant: "destructive" });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("OCR error:", err);
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setScanning(false);
     }
@@ -183,7 +185,7 @@ export default function AddPatient() {
         phone: form.phone || null,
       });
 
-      const labData: any = { patient_id: patient.id };
+      const labData: TablesInsert<"lab_results"> = { patient_id: patient.id };
       if (organ === "liver") {
         labData.tacrolimus_level = parseFloat(form.tacrolimus_level) || null;
         labData.alt = parseFloat(form.alt) || null;
@@ -209,8 +211,9 @@ export default function AddPatient() {
 
       toast({ title: t("add.patientAdded"), description: `${form.full_name} — ${t("home.riskLevel")}: ${t(`risk.${riskLevel}`)}` });
       navigate("/doctor-dashboard");
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally { setSaving(false); }
   };
 
