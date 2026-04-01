@@ -95,6 +95,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.no": "No",
     "add.returnDialysisDate": "Return to Dialysis Date",
     "add.biopsyResult": "Biopsy Result (optional)",
+    "add.country": "Country",
     "add.bloodInfo": "Blood Type Information",
     "add.bloodType": "Patient Blood Type",
     "add.donorBloodType": "Donor Blood Type",
