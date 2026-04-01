@@ -85,7 +85,7 @@ const translations: Record<Language, Record<string, string>> = {
     "add.gender": "Gender",
     "add.male": "Male",
     "add.female": "Female",
-    "add.other": "Other",
+    
     "add.transplantDetails": "Transplant Details",
     "add.transplantNumber": "Transplant Number",
     "add.transplantDate": "Transplant Date",
