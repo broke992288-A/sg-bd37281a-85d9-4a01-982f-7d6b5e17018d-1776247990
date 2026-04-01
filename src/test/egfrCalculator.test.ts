@@ -78,9 +78,8 @@ describe("autoCalculateEgfr", () => {
     expect(result!).toBeGreaterThan(50);
   });
 
-  it("defaults to male for unknown gender", () => {
+  it("returns null for invalid gender", () => {
     const result = autoCalculateEgfr(1.0, "1985-06-15", "other");
-    const male = autoCalculateEgfr(1.0, "1985-06-15", "male");
-    expect(result).toBe(male);
+    expect(result).toBeNull();
   });
 });
