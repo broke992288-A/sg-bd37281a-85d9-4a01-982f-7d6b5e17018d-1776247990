@@ -23,7 +23,7 @@ export function FormField({ label, error, required, children, className }: FormF
 }
 
 interface ValidatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+  label: React.ReactNode;
   error?: string;
   required?: boolean;
   wrapperClassName?: string;
