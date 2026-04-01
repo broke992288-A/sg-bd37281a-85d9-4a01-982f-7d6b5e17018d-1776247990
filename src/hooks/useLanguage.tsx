@@ -443,7 +443,7 @@ const translations: Record<Language, Record<string, string>> = {
     "organ.kidney": "Kidney",
     "gender.male": "Male",
     "gender.female": "Female",
-    "gender.other": "Other",
+    
     // Risk level labels
     "risk.high": "HIGH",
     "risk.medium": "MEDIUM",
