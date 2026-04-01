@@ -11,8 +11,15 @@ const ERROR_KEYS: { pattern: string; key: string }[] = [
   { pattern: "NetworkError", key: "error.networkError" },
 ];
 
+/** Extract a safe string message from an unknown error */
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return String(error ?? "");
+}
+
 export function getReadableError(error: unknown, t?: (key: string) => string): string {
-  const message = error instanceof Error ? error.message : String(error ?? "");
+  const message = getErrorMessage(error);
 
   for (const { pattern, key } of ERROR_KEYS) {
     if (message.toLowerCase().includes(pattern.toLowerCase())) {

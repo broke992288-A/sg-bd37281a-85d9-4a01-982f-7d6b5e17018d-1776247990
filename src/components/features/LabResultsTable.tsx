@@ -67,9 +67,9 @@ export default function LabResultsTable({ labs }: Props) {
   return (
     <div className="space-y-6">
       {labs.map((lab) => {
-        const entries = Object.entries(REFERENCE_RANGES)
+        const entries = (Object.entries(REFERENCE_RANGES) as [LabValueKey, { min: number; max: number; unit: string; label: string }][])
           .map(([key, ref]) => {
-            const val = (lab as any)[key];
+            const val = lab[key];
             if (val == null) return null;
             const status = getStatus(key, val, t);
             return { key, label: ref.label, value: val, unit: ref.unit, range: `${ref.min}–${ref.max}`, status };
