@@ -94,9 +94,10 @@ export default function AddPatient() {
       } else {
         toast({ title: t("common.error"), description: t("upload.noValuesFound"), variant: "destructive" });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("OCR error:", err);
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setScanning(false);
     }
