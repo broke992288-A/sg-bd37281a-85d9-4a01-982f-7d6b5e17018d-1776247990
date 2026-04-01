@@ -88,6 +88,7 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
         setBloodType(patient.blood_type || "");
         setDonorBloodType(patient.donor_blood_type || "");
         setTiterTherapy(patient.titer_therapy || false);
+        setCountry(patient.country || "uzbekistan");
       }
       setOpen(v);
     }}>
