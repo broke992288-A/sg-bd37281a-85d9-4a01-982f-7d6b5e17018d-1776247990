@@ -116,6 +116,42 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_reference_profiles: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          max_value: number | null
+          min_value: number | null
+          organ_type: string
+          test_name: string
+          unit: string
+          version: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          organ_type: string
+          test_name: string
+          unit: string
+          version?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          organ_type?: string
+          test_name?: string
+          unit?: string
+          version?: string
+        }
+        Relationships: []
+      }
       lab_results: {
         Row: {
           albumin: number | null
@@ -747,6 +783,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_risk_score_sql: {
+        Args: { _organ_type: string; _patient_id: string }
+        Returns: Json
+      }
       generate_lab_schedule: {
         Args: { _patient_id: string; _transplant_date: string }
         Returns: undefined
@@ -768,6 +808,10 @@ export type Database = {
           _trend_flags?: Json
         }
         Returns: Json
+      }
+      normalize_lab_value: {
+        Args: { _test_name: string; _unit: string; _value: number }
+        Returns: number
       }
       normalize_phone: { Args: { _phone: string }; Returns: string }
       register_patient_self: {
