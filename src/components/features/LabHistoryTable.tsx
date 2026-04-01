@@ -122,7 +122,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       const original = labs.find(l => l.id === editingId);
       if (!original) return;
 
-      const updates: Partial<Record<LabNumericKey | "recorded_at", number | string | null>> = {};
+      const updates: Partial<Record<LabNumericKey, number | null>> & { recorded_at?: string } = {};
 
       // Check date change
       const origDate = new Date(original.recorded_at).toISOString().split("T")[0];
