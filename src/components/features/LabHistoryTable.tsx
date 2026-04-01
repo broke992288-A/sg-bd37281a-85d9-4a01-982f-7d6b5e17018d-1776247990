@@ -103,7 +103,7 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       date: new Date(lab.recorded_at).toISOString().split("T")[0],
     };
     headers.forEach(h => {
-      const val = (lab as any)[h.key];
+      const val = lab[h.key];
       values[h.key] = val != null ? String(val) : "";
     });
     setEditValues(values);
