@@ -27,7 +27,7 @@ export function calculateRiskScore(organ: OrganType, data: Record<string, number
 
   // ── Early post-transplant period (<90 days) ──
   if (data.transplant_date) {
-    const daysSinceTx = Math.floor((Date.now() - new Date(data.transplant_date).getTime()) / 86400000);
+    const daysSinceTx = Math.floor((Date.now() - new Date(String(data.transplant_date)).getTime()) / 86400000);
     if (daysSinceTx >= 0 && daysSinceTx < 90) {
       score += 10;
     }
