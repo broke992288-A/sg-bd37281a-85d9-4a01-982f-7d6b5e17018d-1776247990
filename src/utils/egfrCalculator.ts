@@ -64,6 +64,6 @@ export function autoCalculateEgfr(
   if (!creatinine || creatinine <= 0) return null;
   const age = getAgeFromDob(dateOfBirth);
   if (!age) return null;
-  const sex = gender === "female" ? "female" : "male";
-  return calculateEgfr({ creatinine, age, sex });
+  if (gender !== "male" && gender !== "female") return null;
+  return calculateEgfr({ creatinine, age, sex: gender });
 }

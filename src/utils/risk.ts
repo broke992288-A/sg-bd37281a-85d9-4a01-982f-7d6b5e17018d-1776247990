@@ -16,7 +16,7 @@ export function calculateRisk(organ: OrganType, data: Record<string, number | st
 /**
  * Full 0-100 risk score calculator with organ-specific logic.
  */
-export function calculateRiskScore(organ: OrganType, data: Record<string, any>): number {
+export function calculateRiskScore(organ: OrganType, data: Record<string, number | string | boolean | null | undefined>): number {
   let score = 0;
 
   // ── Blood type incompatibility ──
