@@ -151,8 +151,9 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       }
 
       setEditingId(null);
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -166,8 +167,9 @@ export default function LabHistoryTable({ labs, organType, showAll = false, edit
       toast({ title: t("detail.labDeleted") });
       setDeleteId(null);
       onLabChanged?.();
-    } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: t("common.error"), description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
