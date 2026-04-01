@@ -94,14 +94,38 @@ function formatDateLocalized(dateStr: string, t: (key: string) => string): strin
   }
 }
 
+/** Country labels for display */
+const COUNTRY_LABELS: Record<string, string> = {
+  uzbekistan: "🇺🇿 O'zbekiston",
+  india: "🇮🇳 India",
+};
+
+/** Unit conversion: country-specific → standard */
+function convertToStandard(key: string, value: number, countryUnit: string): { converted: number; wasConverted: boolean; fromUnit: string; toUnit: string } {
+  const standardUnit = STANDARD_UNITS[key] ?? "";
+  if (!countryUnit || !standardUnit || countryUnit === standardUnit) {
+    return { converted: value, wasConverted: false, fromUnit: countryUnit, toUnit: standardUnit };
+  }
+  if (countryUnit === "µmol/L" && standardUnit === "mg/dL") {
+    if (key === "creatinine") return { converted: Math.round((value / 88.4) * 100) / 100, wasConverted: true, fromUnit: "µmol/L", toUnit: "mg/dL" };
+    if (key === "total_bilirubin" || key === "direct_bilirubin") return { converted: Math.round((value / 17.1) * 100) / 100, wasConverted: true, fromUnit: "µmol/L", toUnit: "mg/dL" };
+  }
+  if (key === "urea" && countryUnit === "mmol/L" && standardUnit === "mg/dL") {
+    return { converted: Math.round(value * 6 * 100) / 100, wasConverted: true, fromUnit: "mmol/L", toUnit: "mg/dL" };
+  }
+  return { converted: value, wasConverted: false, fromUnit: countryUnit, toUnit: standardUnit };
+}
+
 function DateGroupValues({
   group,
   onValueChange,
   t,
+  refMap,
 }: {
   group: DateGroup;
   onValueChange: (key: string, value: string) => void;
   t: (key: string) => string;
+  refMap: Record<string, { min: number | null; max: number | null; unit: string }>;
 }) {
   const filledCount = LAB_FIELDS.filter((f) => group.values[f.key] && group.values[f.key] !== "").length;
   const lowConfFields = LAB_FIELDS.filter(
@@ -145,12 +169,25 @@ function DateGroupValues({
           const isLowConf = hasValue && conf < 80;
           const origText = group.originalText[field.key];
 
+          // Use country-specific unit if available
+          const ref = refMap[field.key];
+          const displayUnit = ref?.unit ?? field.unit;
+          const refRange = ref ? `${ref.min ?? "—"}–${ref.max ?? "—"}` : null;
+
+          // Check if value is outside reference range
+          const numVal = hasValue ? parseFloat(group.values[field.key]) : NaN;
+          const isOutOfRange = ref && !isNaN(numVal) && (
+            (ref.min !== null && numVal < ref.min) || (ref.max !== null && numVal > ref.max)
+          );
+
           return (
             <div
               key={field.key}
               className={`space-y-1 rounded-lg border p-2.5 ${
                 isLowConf
                   ? "border-destructive/40 bg-destructive/5 ring-1 ring-destructive/20"
+                  : isOutOfRange
+                  ? "border-warning/40 bg-warning/5"
                   : hasValue
                   ? "border-primary/30 bg-primary/5"
                   : ""
@@ -161,7 +198,7 @@ function DateGroupValues({
                   {field.label}
                   {hasValue && <ConfidenceBadge confidence={conf} />}
                 </span>
-                <span className="text-muted-foreground">{field.unit}</span>
+                <Badge variant="outline" className="text-[10px] px-1 py-0 font-normal">{displayUnit}</Badge>
               </Label>
               {origText && origText !== group.values[field.key] && (
                 <p className="text-[10px] text-muted-foreground truncate" title={origText}>
@@ -173,9 +210,14 @@ function DateGroupValues({
                 step="any"
                 value={group.values[field.key] ?? ""}
                 onChange={(e) => onValueChange(field.key, e.target.value)}
-                className={`h-8 text-sm ${isLowConf ? "border-destructive/40" : ""}`}
+                className={`h-8 text-sm ${isLowConf ? "border-destructive/40" : isOutOfRange ? "border-warning/40" : ""}`}
                 placeholder="—"
               />
+              {refRange && (
+                <p className={`text-[10px] ${isOutOfRange ? "text-warning font-medium" : "text-muted-foreground"}`}>
+                  {isOutOfRange ? "⚠️ " : ""}Norma: {refRange} {displayUnit}
+                </p>
+              )}
             </div>
           );
         })}
