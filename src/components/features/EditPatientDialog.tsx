@@ -60,6 +60,7 @@ export default function EditPatientDialog({ patient, onUpdated }: EditPatientDia
         blood_type: bloodType || null,
         donor_blood_type: donorBloodType || null,
         titer_therapy: titerTherapy,
+        country: country,
       });
       toast({ title: t("edit.patientUpdated") });
       setOpen(false);
