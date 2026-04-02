@@ -1,31 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const ALLOWED_ORIGINS = ["https://lovable.app"];
-const ALLOWED_HOST_SUFFIXES = [".lovable.app", ".lovableproject.com"];
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") ?? "";
-
-  const allowed = (() => {
-    if (!origin) return false;
-    if (ALLOWED_ORIGINS.includes(origin)) return true;
-
-    try {
-      const { hostname } = new URL(origin);
-      return ALLOWED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
-    } catch {
-      return false;
-    }
-  })();
-
-  return {
-    "Access-Control-Allow-Origin": allowed ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 function log(level: string, fn: string, msg: string, meta: Record<string, unknown> = {}) {
   const entry = { timestamp: new Date().toISOString(), level, function_name: fn, message: msg, ...meta };
