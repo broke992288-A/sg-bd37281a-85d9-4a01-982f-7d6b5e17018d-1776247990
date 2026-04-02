@@ -1,19 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const ALLOWED_ORIGINS = [
-  "https://id-preview--3d6f8975-c3ff-446b-91f6-07f7ec886943.lovable.app",
-  "https://lovable.app",
-];
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") ?? "";
-  const allowed = ALLOWED_ORIGINS.some((o) => origin.startsWith(o) || origin.endsWith(".lovable.app"));
-  return {
-    "Access-Control-Allow-Origin": allowed ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  };
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 function log(level: string, fn: string, msg: string, meta: Record<string, unknown> = {}) {
   const entry = { timestamp: new Date().toISOString(), level, function_name: fn, message: msg, ...meta };
