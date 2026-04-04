@@ -116,6 +116,47 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_notes: {
+        Row: {
+          assessment: string | null
+          created_at: string
+          doctor_id: string
+          follow_up_date: string | null
+          id: string
+          patient_id: string
+          plan: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment?: string | null
+          created_at?: string
+          doctor_id: string
+          follow_up_date?: string | null
+          id?: string
+          patient_id: string
+          plan?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment?: string | null
+          created_at?: string
+          doctor_id?: string
+          follow_up_date?: string | null
+          id?: string
+          patient_id?: string
+          plan?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_reference_profiles: {
         Row: {
           country: string
