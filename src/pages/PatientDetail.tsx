@@ -167,6 +167,9 @@ export default function PatientDetail() {
           <PatientLabScheduleCard patientId={patient.id} />
         </div>
 
+        {/* Doctor Notes */}
+        <DoctorNotesCard patientId={patient.id} />
+
         {/* ROW 4: Risk details + Override + Recalculate */}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2">
