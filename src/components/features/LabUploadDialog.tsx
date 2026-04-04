@@ -241,9 +241,14 @@ function DateGroupValues({
                 step="any"
                 value={group.values[field.key] ?? ""}
                 onChange={(e) => onValueChange(field.key, e.target.value)}
-                className={`h-8 text-sm ${isLowConf ? "border-destructive/40" : isOutOfRange ? "border-warning/40" : ""}`}
+                className={`h-8 text-sm ${isSusp ? "border-destructive ring-1 ring-destructive" : isLowConf ? "border-destructive/40" : isOutOfRange ? "border-warning/40" : ""}`}
                 placeholder="—"
               />
+              {isSusp && (
+                <p className="text-[10px] text-destructive font-semibold flex items-center gap-0.5">
+                  <AlertTriangle className="h-3 w-3" /> Suspicious value — please verify!
+                </p>
+              )}
               {refRange && (
                 <p className={`text-[10px] ${isOutOfRange ? "text-warning font-medium" : "text-muted-foreground"}`}>
                   {isOutOfRange ? "⚠️ " : ""}Norma: {refRange} {displayUnit}
