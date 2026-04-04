@@ -30,6 +30,7 @@ import AddLabDialog from "@/components/features/AddLabDialog";
 import LabUploadDialog from "@/components/features/LabUploadDialog";
 import LabHistoryTable from "@/components/features/LabHistoryTable";
 import DoctorNotesCard from "@/components/features/DoctorNotesCard";
+import BulkLabEntryDialog from "@/components/features/BulkLabEntryDialog";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
