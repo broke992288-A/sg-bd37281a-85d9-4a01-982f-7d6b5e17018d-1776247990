@@ -44,7 +44,7 @@ const REFERENCE_RANGES: Record<LabValueKey, { min: number; max: number; unit: st
 };
 
 function getStatus(key: string, value: number, t: (k: string) => string): { label: string; color: string } {
-  const ref = REFERENCE_RANGES[key];
+  const ref = REFERENCE_RANGES[key as LabValueKey];
   if (!ref) return { label: "—", color: "" };
   
   const lowBorder = ref.min * 0.9;
