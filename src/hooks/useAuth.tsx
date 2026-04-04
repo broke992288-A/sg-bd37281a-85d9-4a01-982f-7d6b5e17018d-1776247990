@@ -82,6 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(newRole);
   };
 
+  const refreshRole = async () => {
+    if (!user) return;
+    await fetchRole(user.id);
+  };
+
   return (
     <AuthContext.Provider value={{ user, session, role, loading, signIn, signUp, signOut, setUserRole }}>
       {children}
