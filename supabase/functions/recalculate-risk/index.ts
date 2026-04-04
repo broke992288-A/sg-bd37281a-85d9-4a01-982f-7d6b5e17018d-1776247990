@@ -177,7 +177,7 @@ serve(async (req) => {
 
     let patientsQuery = supabase
       .from("patients")
-      .select("id, organ_type, transplant_number, dialysis_history, transplant_date, date_of_birth, gender");
+      .select("id, organ_type, transplant_number, dialysis_history, transplant_date, date_of_birth, gender, country");
     if (targetPatientId) {
       patientsQuery = patientsQuery.eq("id", targetPatientId);
     } else {
