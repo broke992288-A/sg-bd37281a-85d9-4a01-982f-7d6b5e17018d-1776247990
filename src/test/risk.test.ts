@@ -278,6 +278,291 @@ describe("BK/CMV/DSA kidney risk markers", () => {
 
   it("combined BK + CMV + DSA produces high risk", () => {
     const score = calculateRiskScore("kidney", { bk_virus_load: 15000, cmv_load: 2000, dsa_mfi: 8000 });
+    expect(score).toBeGreaterThanOrEqual(55);
+  });
+
+  it("does NOT add BK/CMV/DSA points for liver organ", () => {
+    const score = calculateRiskScore("liver", { bk_virus_load: 15000, cmv_load: 2000, dsa_mfi: 8000 });
+    expect(score).toBe(0);
+  });
+});
+
+// ─── KDIGO/AASLD MANDATORY PARAMETER TESTS ───
+
+describe("Hemoglobin (Hb) scoring — KDIGO 2024 / AASLD 2023", () => {
+  it("kidney: +20 for Hb < 7 (critical anemia)", () => {
+    const score = calculateRiskScore("kidney", { hb: 6 });
+    expect(score).toBe(20);
+  });
+
+  it("kidney: +10 for Hb < 10 (mild anemia)", () => {
+    const score = calculateRiskScore("kidney", { hb: 9 });
+    expect(score).toBe(10);
+  });
+
+  it("kidney: 0 for Hb >= 10 (normal)", () => {
+    const score = calculateRiskScore("kidney", { hb: 13 });
+    expect(score).toBe(0);
+  });
+
+  it("liver: +15 for Hb < 7", () => {
+    const score = calculateRiskScore("liver", { hb: 5 });
+    expect(score).toBe(15);
+  });
+
+  it("liver: +5 for Hb < 10", () => {
+    const score = calculateRiskScore("liver", { hb: 8 });
+    expect(score).toBe(5);
+  });
+
+  it("no points when Hb is 0 or missing", () => {
+    expect(calculateRiskScore("kidney", { hb: 0 })).toBe(0);
+    expect(calculateRiskScore("kidney", {})).toBe(0);
+  });
+});
+
+describe("CRP scoring — inflammation marker (both organs)", () => {
+  it("+15 for CRP > 50 (severe inflammation)", () => {
+    const score = calculateRiskScore("kidney", { crp: 60 });
+    expect(score).toBe(15);
+  });
+
+  it("+5 for CRP > 10 (moderate inflammation)", () => {
+    const score = calculateRiskScore("liver", { crp: 25 });
+    expect(score).toBe(5);
+  });
+
+  it("0 for CRP <= 10 (normal)", () => {
+    expect(calculateRiskScore("kidney", { crp: 5 })).toBe(0);
+  });
+
+  it("0 for CRP <= 0 or missing", () => {
+    expect(calculateRiskScore("kidney", { crp: 0 })).toBe(0);
+    expect(calculateRiskScore("kidney", {})).toBe(0);
+  });
+});
+
+describe("Urea scoring — KDIGO 2024 (kidney only)", () => {
+  it("kidney: +15 for urea > 40", () => {
+    const score = calculateRiskScore("kidney", { urea: 50 });
+    expect(score).toBe(15);
+  });
+
+  it("kidney: +5 for urea > 20 but <= 40", () => {
+    const score = calculateRiskScore("kidney", { urea: 30 });
+    expect(score).toBe(5);
+  });
+
+  it("kidney: 0 for urea <= 20", () => {
+    expect(calculateRiskScore("kidney", { urea: 15 })).toBe(0);
+  });
+
+  it("liver: urea does NOT affect score", () => {
+    expect(calculateRiskScore("liver", { urea: 50 })).toBe(0);
+  });
+});
+
+describe("INR scoring — AASLD 2023 (liver only)", () => {
+  it("liver: +20 for INR > 2.0 (severe coagulopathy)", () => {
+    const score = calculateRiskScore("liver", { inr: 2.5 });
+    expect(score).toBe(20);
+  });
+
+  it("liver: +10 for INR > 1.5 but <= 2.0", () => {
+    const score = calculateRiskScore("liver", { inr: 1.8 });
+    expect(score).toBe(10);
+  });
+
+  it("liver: 0 for INR <= 1.5", () => {
+    expect(calculateRiskScore("liver", { inr: 1.2 })).toBe(0);
+  });
+
+  it("kidney: INR does NOT affect score", () => {
+    expect(calculateRiskScore("kidney", { inr: 2.5 })).toBe(0);
+  });
+});
+
+describe("Platelets scoring — AASLD 2023 (liver only)", () => {
+  it("liver: +15 for platelets < 50 (severe thrombocytopenia)", () => {
+    const score = calculateRiskScore("liver", { platelets: 30 });
+    expect(score).toBe(15);
+  });
+
+  it("liver: +5 for platelets < 100 but >= 50", () => {
+    const score = calculateRiskScore("liver", { platelets: 80 });
+    expect(score).toBe(5);
+  });
+
+  it("liver: 0 for platelets >= 100", () => {
+    expect(calculateRiskScore("liver", { platelets: 200 })).toBe(0);
+  });
+
+  it("kidney: platelets does NOT affect score", () => {
+    expect(calculateRiskScore("kidney", { platelets: 30 })).toBe(0);
+  });
+});
+
+describe("Albumin scoring — AASLD 2023 (liver only)", () => {
+  it("liver: +20 for albumin < 2.5 (severe hypoalbuminemia)", () => {
+    const score = calculateRiskScore("liver", { albumin: 2.0 });
+    expect(score).toBe(20);
+  });
+
+  it("liver: +10 for albumin < 3.0 but >= 2.5", () => {
+    const score = calculateRiskScore("liver", { albumin: 2.7 });
+    expect(score).toBe(10);
+  });
+
+  it("liver: 0 for albumin >= 3.0", () => {
+    expect(calculateRiskScore("liver", { albumin: 4.0 })).toBe(0);
+  });
+
+  it("kidney: albumin does NOT affect score", () => {
+    expect(calculateRiskScore("kidney", { albumin: 2.0 })).toBe(0);
+  });
+});
+
+describe("Calcium scoring — KDIGO CKD-MBD 2024", () => {
+  it("kidney: +15 for calcium > 2.75 (hypercalcemia)", () => {
+    const score = calculateRiskScore("kidney", { calcium: 3.0 });
+    expect(score).toBe(15);
+  });
+
+  it("kidney: +8 for calcium < 2.0 (hypocalcemia)", () => {
+    const score = calculateRiskScore("kidney", { calcium: 1.8 });
+    expect(score).toBe(8);
+  });
+
+  it("kidney: 0 for calcium in range [2.0, 2.75]", () => {
+    expect(calculateRiskScore("kidney", { calcium: 2.4 })).toBe(0);
+  });
+
+  it("liver: +10 for calcium > 2.75", () => {
+    const score = calculateRiskScore("liver", { calcium: 3.0 });
+    expect(score).toBe(10);
+  });
+
+  it("liver: +5 for calcium < 2.0", () => {
+    const score = calculateRiskScore("liver", { calcium: 1.5 });
+    expect(score).toBe(5);
+  });
+
+  it("0 when calcium is 0 or missing", () => {
+    expect(calculateRiskScore("kidney", { calcium: 0 })).toBe(0);
+    expect(calculateRiskScore("kidney", {})).toBe(0);
+  });
+});
+
+describe("Phosphorus scoring — KDIGO CKD-MBD 2024 (kidney only)", () => {
+  it("kidney: +15 for phosphorus > 1.78 (severe hyperphosphatemia)", () => {
+    const score = calculateRiskScore("kidney", { phosphorus: 2.0 });
+    expect(score).toBe(15);
+  });
+
+  it("kidney: +8 for phosphorus > 1.45 but <= 1.78", () => {
+    const score = calculateRiskScore("kidney", { phosphorus: 1.6 });
+    expect(score).toBe(8);
+  });
+
+  it("kidney: 0 for phosphorus <= 1.45", () => {
+    expect(calculateRiskScore("kidney", { phosphorus: 1.2 })).toBe(0);
+  });
+
+  it("liver: phosphorus does NOT affect score", () => {
+    expect(calculateRiskScore("liver", { phosphorus: 2.0 })).toBe(0);
+  });
+});
+
+describe("Magnesium scoring — KDIGO CKD-MBD 2024 (kidney only)", () => {
+  it("kidney: +12 for magnesium < 0.4 (severe hypomagnesemia)", () => {
+    const score = calculateRiskScore("kidney", { magnesium: 0.3 });
+    expect(score).toBe(12);
+  });
+
+  it("kidney: +5 for magnesium < 0.6 but >= 0.4", () => {
+    const score = calculateRiskScore("kidney", { magnesium: 0.5 });
+    expect(score).toBe(5);
+  });
+
+  it("kidney: 0 for magnesium >= 0.6", () => {
+    expect(calculateRiskScore("kidney", { magnesium: 0.8 })).toBe(0);
+  });
+
+  it("liver: magnesium does NOT affect score", () => {
+    expect(calculateRiskScore("liver", { magnesium: 0.3 })).toBe(0);
+  });
+});
+
+describe("Combined KDIGO/AASLD parameter interactions", () => {
+  it("kidney: Hb + CRP + Calcium + Phosphorus + Magnesium combined", () => {
+    const score = calculateRiskScore("kidney", {
+      hb: 6,           // +20
+      crp: 60,          // +15
+      calcium: 3.0,     // +15
+      phosphorus: 2.0,  // +15
+      magnesium: 0.3,   // +12
+    });
+    expect(score).toBe(77); // 20+15+15+15+12
+  });
+
+  it("liver: Hb + CRP + Calcium + INR + Platelets + Albumin combined", () => {
+    const score = calculateRiskScore("liver", {
+      hb: 5,            // +15
+      crp: 60,          // +15
+      calcium: 3.0,     // +10
+      inr: 2.5,         // +20
+      platelets: 30,    // +15
+      albumin: 2.0,     // +20
+    });
+    expect(score).toBe(95); // 15+15+10+20+15+20
+  });
+
+  it("all parameters max out at 100", () => {
+    const score = calculateRiskScore("liver", {
+      hb: 5, crp: 60, calcium: 3.0, inr: 2.5, platelets: 30, albumin: 2.0,
+      alt: 900, ast: 600, total_bilirubin: 12, tacrolimus_level: 2,
+      transplant_number: 3,
+    });
+    expect(score).toBe(100);
+  });
+});
+  it("adds +20 for BK virus >10000", () => {
+    const score = calculateRiskScore("kidney", { bk_virus_load: 15000 });
+    expect(score).toBeGreaterThanOrEqual(20);
+  });
+
+  it("adds +10 for BK virus >1000 but <=10000", () => {
+    const score = calculateRiskScore("kidney", { bk_virus_load: 5000 });
+    expect(score).toBeGreaterThanOrEqual(10);
+  });
+
+  it("no points for BK virus <=1000", () => {
+    const score = calculateRiskScore("kidney", { bk_virus_load: 500 });
+    expect(score).toBe(0);
+  });
+
+  it("adds +15 for CMV >1000", () => {
+    const score = calculateRiskScore("kidney", { cmv_load: 2000 });
+    expect(score).toBeGreaterThanOrEqual(15);
+  });
+
+  it("adds +8 for CMV >500 but <=1000", () => {
+    const score = calculateRiskScore("kidney", { cmv_load: 800 });
+    expect(score).toBeGreaterThanOrEqual(8);
+  });
+
+  it("adds +20 for DSA MFI >5000", () => {
+    const score = calculateRiskScore("kidney", { dsa_mfi: 8000 });
+    expect(score).toBeGreaterThanOrEqual(20);
+  });
+
+  it("adds +10 for DSA MFI >1000 but <=5000", () => {
+    const score = calculateRiskScore("kidney", { dsa_mfi: 3000 });
+    expect(score).toBeGreaterThanOrEqual(10);
+  });
+
+  it("combined BK + CMV + DSA produces high risk", () => {
+    const score = calculateRiskScore("kidney", { bk_virus_load: 15000, cmv_load: 2000, dsa_mfi: 8000 });
     // 20 + 15 + 20 = 55 → medium; with creatinine elevated → high
     expect(score).toBeGreaterThanOrEqual(55);
   });
