@@ -101,6 +101,33 @@ const COUNTRY_LABELS: Record<string, string> = {
   india: "🇮🇳 India",
 };
 
+/** Suspicious thresholds — values above these are highlighted in red */
+const SUSPICIOUS_THRESHOLDS: Record<string, number> = {
+  alt: 2000, ast: 2000, creatinine: 20, total_bilirubin: 30,
+  direct_bilirubin: 20, potassium: 8, sodium: 170, hb: 25,
+  platelets: 1000, inr: 10, alp: 1500, ggt: 2000, urea: 300,
+  tacrolimus_level: 30, calcium: 15, phosphorus: 10,
+};
+
+/** Auto-detect country from extracted lab values */
+function detectCountryFromValues(values: Record<string, string>): { country: string; reason: string } | null {
+  const cr = parseFloat(values.creatinine);
+  if (!isNaN(cr)) {
+    if (cr > 10) return { country: "uzbekistan", reason: `Creatinine ${cr} → µmol/L (O'zbekiston)` };
+    if (cr > 0 && cr < 5) return { country: "india", reason: `Creatinine ${cr} → mg/dL (India)` };
+  }
+  const bili = parseFloat(values.total_bilirubin);
+  if (!isNaN(bili)) {
+    if (bili > 3) return { country: "uzbekistan", reason: `Bilirubin ${bili} → µmol/L (O'zbekiston)` };
+  }
+  return null;
+}
+
+function isSuspicious(key: string, value: number): boolean {
+  const threshold = SUSPICIOUS_THRESHOLDS[key];
+  return threshold != null && value > threshold;
+}
+
 /** Unit conversion: country-specific → standard */
 function convertToStandard(key: string, value: number, countryUnit: string): { converted: number; wasConverted: boolean; fromUnit: string; toUnit: string } {
   const standardUnit = STANDARD_UNITS[key] ?? "";
@@ -180,12 +207,15 @@ function DateGroupValues({
           const isOutOfRange = ref && !isNaN(numVal) && (
             (ref.min !== null && numVal < ref.min) || (ref.max !== null && numVal > ref.max)
           );
+          const isSusp = !isNaN(numVal) && isSuspicious(field.key, numVal);
 
           return (
             <div
               key={field.key}
               className={`space-y-1 rounded-lg border p-2.5 ${
-                isLowConf
+                isSusp
+                  ? "border-destructive bg-destructive/10 ring-2 ring-destructive/40"
+                  : isLowConf
                   ? "border-destructive/40 bg-destructive/5 ring-1 ring-destructive/20"
                   : isOutOfRange
                   ? "border-warning/40 bg-warning/5"
@@ -211,9 +241,14 @@ function DateGroupValues({
                 step="any"
                 value={group.values[field.key] ?? ""}
                 onChange={(e) => onValueChange(field.key, e.target.value)}
-                className={`h-8 text-sm ${isLowConf ? "border-destructive/40" : isOutOfRange ? "border-warning/40" : ""}`}
+                className={`h-8 text-sm ${isSusp ? "border-destructive ring-1 ring-destructive" : isLowConf ? "border-destructive/40" : isOutOfRange ? "border-warning/40" : ""}`}
                 placeholder="—"
               />
+              {isSusp && (
+                <p className="text-[10px] text-destructive font-semibold flex items-center gap-0.5">
+                  <AlertTriangle className="h-3 w-3" /> Suspicious value — please verify!
+                </p>
+              )}
               {refRange && (
                 <p className={`text-[10px] ${isOutOfRange ? "text-warning font-medium" : "text-muted-foreground"}`}>
                   {isOutOfRange ? "⚠️ " : ""}Norma: {refRange} {displayUnit}
@@ -318,6 +353,16 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
 
       setDateGroups(groups);
       setReportType(ocrData?.reportType ?? "");
+
+      // Auto-detect country from extracted values
+      for (const g of groups) {
+        const detected = detectCountryFromValues(g.values);
+        if (detected) {
+          setCountry(detected.country);
+          toast({ title: "🌍 " + t("common.info"), description: detected.reason });
+          break;
+        }
+      }
 
       const totalLowConf = groups.reduce((sum, g) => {
         return sum + LAB_FIELDS.filter(
