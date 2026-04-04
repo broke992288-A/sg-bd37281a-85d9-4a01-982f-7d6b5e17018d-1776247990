@@ -98,43 +98,59 @@ ${labSummary}
 
 Analyze the trend and predict rejection risk for the next 7-14 days.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "openai/gpt-5-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "predict_rejection",
-            description: "Return structured prediction result for transplant rejection risk.",
-            parameters: {
-              type: "object",
-              properties: {
-                prediction_risk: { type: "string", enum: ["low", "medium", "high"] },
-                score: { type: "number", description: "Prediction confidence score 0-100" },
-                message: { type: "string" },
-                reasons: { type: "array", items: { type: "string" } },
-                timeframe: { type: "string" },
-              },
-              required: ["prediction_risk", "score", "message", "reasons", "timeframe"],
-              additionalProperties: false,
+    const aiPayload = {
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "predict_rejection",
+          description: "Return structured prediction result for transplant rejection risk.",
+          parameters: {
+            type: "object",
+            properties: {
+              prediction_risk: { type: "string", enum: ["low", "medium", "high"] },
+              score: { type: "number", description: "Prediction confidence score 0-100" },
+              message: { type: "string" },
+              reasons: { type: "array", items: { type: "string" } },
+              timeframe: { type: "string" },
             },
+            required: ["prediction_risk", "score", "message", "reasons", "timeframe"],
+            additionalProperties: false,
           },
-        }],
-        tool_choice: { type: "function", function: { name: "predict_rejection" } },
-      }),
-    });
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "predict_rejection" } },
+    };
 
-    if (!response.ok) {
-      const errText = await response.text();
-      log("error", FN_NAME, "AI gateway error", { requestId, userId, status: response.status, errText });
-      if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (response.status === 402) return new Response(JSON.stringify({ error: "Payment required." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    let response: Response | null = null;
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify(aiPayload),
+      });
+
+      if (response.ok || (response.status !== 502 && response.status !== 503 && response.status !== 504)) {
+        break;
+      }
+
+      log("warn", FN_NAME, `AI gateway transient error, retry ${attempt + 1}/${maxRetries}`, { requestId, status: response.status });
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+      }
+    }
+
+    if (!response || !response.ok) {
+      const errText = response ? await response.text() : "No response";
+      const status = response?.status ?? 0;
+      log("error", FN_NAME, "AI gateway error", { requestId, userId, status, errText: errText.substring(0, 500) });
+      if (status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (status === 402) return new Response(JSON.stringify({ error: "Payment required." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       throw new Error("AI gateway error");
     }
 
