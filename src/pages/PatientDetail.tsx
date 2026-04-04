@@ -21,7 +21,7 @@ import { triggerRiskRecalculation } from "@/services/riskRecalculationService";
 import PatientCockpitHeader from "@/components/features/PatientCockpitHeader";
 import LatestLabsTable from "@/components/features/LatestLabsTable";
 import LabTrendCharts from "@/components/features/LabTrendCharts";
-import PatientAlertsCard from "@/components/features/PatientAlertsCard";
+
 import ActiveMedicationsCard from "@/components/features/ActiveMedicationsCard";
 import PredictionPanel from "@/components/features/PredictionPanel";
 import PatientLabScheduleCard from "@/components/features/PatientLabScheduleCard";
