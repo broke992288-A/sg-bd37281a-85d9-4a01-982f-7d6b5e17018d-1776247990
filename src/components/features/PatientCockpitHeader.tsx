@@ -23,9 +23,14 @@ export default function PatientCockpitHeader({ patient, latestRisk, onUpdated }:
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: schedules = [] } = useLabSchedules(patient.id);
 
   const riskScore = latestRisk?.score ?? patient.risk_score ?? 0;
   const riskLevel = latestRisk?.risk_level ?? patient.risk_level ?? "low";
+
+  const nextSchedule = schedules.find(s => s.status !== "completed" && new Date(s.scheduled_date) >= new Date(new Date().toDateString()));
+  const overdueSchedule = schedules.find(s => s.status !== "completed" && new Date(s.scheduled_date) < new Date(new Date().toDateString()) && !s.completed_lab_id);
+  const displaySchedule = overdueSchedule ?? nextSchedule;
 
   return (
     <Card className="border-2 border-primary/20">
