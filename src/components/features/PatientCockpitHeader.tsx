@@ -80,6 +80,8 @@ export default function PatientCockpitHeader({ patient, latestRisk, onUpdated }:
                 </div>
               )}
             </div>
+          </div>
+
           {patient.risk_level === "high" && (
             <div className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2 flex items-center gap-2 text-sm">
               <Stethoscope className="h-4 w-4 text-warning" />
