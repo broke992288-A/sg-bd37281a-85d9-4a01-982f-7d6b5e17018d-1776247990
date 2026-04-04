@@ -137,6 +137,7 @@ export default function PatientDetail() {
             <div className="flex flex-wrap gap-2">
               <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} patientCountry={(patient as Record<string, unknown>).country as string} />
               <LabUploadDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} patientCountry={(patient as Record<string, unknown>).country as string} />
+              <BulkLabEntryDialog patientId={patient.id} organType={patient.organ_type} onLabsAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} />
             </div>
           </div>
           <Card className="h-full">
