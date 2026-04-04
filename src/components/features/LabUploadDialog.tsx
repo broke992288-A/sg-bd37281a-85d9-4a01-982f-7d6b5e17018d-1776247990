@@ -101,6 +101,33 @@ const COUNTRY_LABELS: Record<string, string> = {
   india: "🇮🇳 India",
 };
 
+/** Suspicious thresholds — values above these are highlighted in red */
+const SUSPICIOUS_THRESHOLDS: Record<string, number> = {
+  alt: 2000, ast: 2000, creatinine: 20, total_bilirubin: 30,
+  direct_bilirubin: 20, potassium: 8, sodium: 170, hb: 25,
+  platelets: 1000, inr: 10, alp: 1500, ggt: 2000, urea: 300,
+  tacrolimus_level: 30, calcium: 15, phosphorus: 10,
+};
+
+/** Auto-detect country from extracted lab values */
+function detectCountryFromValues(values: Record<string, string>): { country: string; reason: string } | null {
+  const cr = parseFloat(values.creatinine);
+  if (!isNaN(cr)) {
+    if (cr > 10) return { country: "uzbekistan", reason: `Creatinine ${cr} → µmol/L (O'zbekiston)` };
+    if (cr > 0 && cr < 5) return { country: "india", reason: `Creatinine ${cr} → mg/dL (India)` };
+  }
+  const bili = parseFloat(values.total_bilirubin);
+  if (!isNaN(bili)) {
+    if (bili > 3) return { country: "uzbekistan", reason: `Bilirubin ${bili} → µmol/L (O'zbekiston)` };
+  }
+  return null;
+}
+
+function isSuspicious(key: string, value: number): boolean {
+  const threshold = SUSPICIOUS_THRESHOLDS[key];
+  return threshold != null && value > threshold;
+}
+
 /** Unit conversion: country-specific → standard */
 function convertToStandard(key: string, value: number, countryUnit: string): { converted: number; wasConverted: boolean; fromUnit: string; toUnit: string } {
   const standardUnit = STANDARD_UNITS[key] ?? "";
