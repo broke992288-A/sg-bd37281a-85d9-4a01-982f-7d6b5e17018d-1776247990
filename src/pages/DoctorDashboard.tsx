@@ -8,12 +8,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDoctorPatientsWithLabs } from "@/hooks/usePatients";
+import { useSmartPriorityQueue } from "@/hooks/useSmartPriorityQueue";
 import { riskColorClass, daysSince } from "@/utils/risk";
 import { SkeletonCard, SkeletonTable, SkeletonChart } from "@/components/ui/skeleton-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import PredictionPanel from "@/components/features/PredictionPanel";
 import PatientPriorityPanel from "@/components/features/PatientPriorityPanel";
 import OverdueLabsPanel from "@/components/features/OverdueLabsPanel";
+import type { UrgencyTier } from "@/utils/smartPriority";
 
 function timeAgo(dateStr: string | null, t: (k: string) => string): string {
   if (!dateStr) return "—";
@@ -189,45 +191,77 @@ export default function DoctorDashboard() {
           </div>
         )}
 
-        {/* All patients table */}
-        <Card>
-          <CardHeader><CardTitle className="text-lg">{t("dashboard.allPatients")}</CardTitle></CardHeader>
-          <CardContent>
-            {loading ? (
-              <SkeletonTable rows={6} cols={4} />
-            ) : patients.length === 0 ? (
-              <EmptyState
-                icon={UserPlus}
-                title={t("dashboard.noPatients")}
-                description={t("dashboard.addFirstPatient")}
-                actionLabel={t("nav.addPatient")}
-                onAction={() => navigate("/add-patient")}
-              />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("dashboard.patient")}</TableHead>
-                    <TableHead>{t("dashboard.organ")}</TableHead>
-                    <TableHead>{t("dashboard.daysPostTx")}</TableHead>
-                    <TableHead>{t("dashboard.risk")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {patients.map((p) => (
-                    <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/patient/${p.id}`)}>
-                      <TableCell className="font-medium">{p.full_name}</TableCell>
-                      <TableCell>{t(`organ.${p.organ_type}`)}</TableCell>
-                      <TableCell>{p.transplant_date ? daysSince(p.transplant_date) : "—"}</TableCell>
-                      <TableCell>{riskBadge(p.risk_level)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        {/* Smart Priority Patient Queue */}
+        <SmartPatientQueue />
       </div>
     </DashboardLayout>
+  );
+}
+
+const TIER_EMOJI: Record<UrgencyTier, string> = { critical: "🔴", warning: "🟠", stable: "🟢" };
+const TIER_BADGE_CLASS: Record<UrgencyTier, string> = {
+  critical: "bg-destructive text-destructive-foreground",
+  warning: "bg-warning text-warning-foreground",
+  stable: "bg-success text-success-foreground",
+};
+const TIER_LABEL: Record<UrgencyTier, string> = { critical: "Critical", warning: "Warning", stable: "Stable" };
+
+function SmartPatientQueue() {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const { data: smartPatients, isLoading } = useSmartPriorityQueue();
+
+  const riskBadge = (level: string) => <Badge className={riskColorClass(level)}>{t(`risk.${level}`)}</Badge>;
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-lg">{t("dashboard.allPatients")}</CardTitle></CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <SkeletonTable rows={6} cols={5} />
+        ) : !smartPatients || smartPatients.length === 0 ? (
+          <EmptyState
+            icon={UserPlus}
+            title={t("dashboard.noPatients")}
+            description={t("dashboard.addFirstPatient")}
+            actionLabel={t("nav.addPatient")}
+            onAction={() => navigate("/add-patient")}
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12"></TableHead>
+                <TableHead>{t("dashboard.patient")}</TableHead>
+                <TableHead>{t("dashboard.organ")}</TableHead>
+                <TableHead>{t("dashboard.daysPostTx")}</TableHead>
+                <TableHead>{t("dashboard.risk")}</TableHead>
+                <TableHead>{t("dashboard.status")}</TableHead>
+                <TableHead>{t("dashboard.reasons")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {smartPatients.map((p) => (
+                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/patient/${p.id}`)}>
+                  <TableCell className="text-center text-lg">{TIER_EMOJI[p.priority.tier]}</TableCell>
+                  <TableCell className="font-medium">{p.full_name}</TableCell>
+                  <TableCell>{t(`organ.${p.organ_type}`)}</TableCell>
+                  <TableCell>{p.transplant_date ? daysSince(p.transplant_date) : "—"}</TableCell>
+                  <TableCell>{riskBadge(p.risk_level)}</TableCell>
+                  <TableCell>
+                    <Badge className={TIER_BADGE_CLASS[p.priority.tier]}>
+                      {TIER_LABEL[p.priority.tier]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] text-xs text-muted-foreground truncate">
+                    {p.priority.reason}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   );
 }
