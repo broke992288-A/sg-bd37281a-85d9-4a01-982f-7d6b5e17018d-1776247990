@@ -67,14 +67,17 @@ export default function SelectRole() {
   const handleSelect = async (selectedRole: AppRole) => {
     setSelecting(selectedRole);
     try {
-      await setUserRole(selectedRole);
       if (selectedRole === "patient") {
+        // register_patient_self now also assigns the 'patient' role server-side
         const meta = user.user_metadata || {};
         await registerPatientSelf({
           fullName: meta.full_name || user.email || "",
           phone: meta.phone || null,
         });
       }
+      // For non-patient roles, admin must assign via dashboard
+      // setUserRole will fail for non-admins due to RLS
+      await setUserRole(selectedRole);
       navigate(getRoleRedirect(selectedRole), { replace: true });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
