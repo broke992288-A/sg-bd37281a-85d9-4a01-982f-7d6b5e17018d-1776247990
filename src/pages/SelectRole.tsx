@@ -40,7 +40,7 @@ const ROLES: { role: AppRole; icon: typeof User; title: string; desc: string; re
 ];
 
 export default function SelectRole() {
-  const { user, role, setUserRole, loading: authLoading } = useAuth();
+  const { user, role, setUserRole, refreshRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
