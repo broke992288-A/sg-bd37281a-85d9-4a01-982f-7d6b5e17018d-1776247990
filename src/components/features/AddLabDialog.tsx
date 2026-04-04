@@ -317,6 +317,9 @@ export default function AddLabDialog({ patientId, organType, onLabAdded, patient
               <LabField fieldKey="egfr" label={`${t("add.egfr")} (auto)`} required={false} placeholder="Auto-calculated if empty" />
               <LabField fieldKey="proteinuria" label={t("add.proteinuria")} />
               <LabField fieldKey="potassium" label={t("add.potassium")} />
+              <LabField fieldKey="bk_virus_load" label="BK Virus (copies/ml)" required={false} step="1" placeholder="PCR natija" />
+              <LabField fieldKey="cmv_load" label="CMV (copies/ml)" required={false} step="1" placeholder="PCR natija" />
+              <LabField fieldKey="dsa_mfi" label="DSA MFI" required={false} step="1" placeholder="Luminex natija" />
             </>
           )}
           <div className="sm:col-span-2">
