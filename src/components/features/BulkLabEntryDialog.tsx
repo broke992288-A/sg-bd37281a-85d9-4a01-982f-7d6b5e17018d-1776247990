@@ -25,7 +25,15 @@ interface Props {
   };
 }
 
-const COLUMNS = [
+interface ColDef {
+  key: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  skip?: boolean;
+}
+
+const COLUMNS: ColDef[] = [
   { key: "recorded_at", label: "DATE", type: "date", required: true },
   { key: "hb", label: "HB" },
   { key: "tlc", label: "TLC" },
@@ -47,7 +55,7 @@ const COLUMNS = [
   { key: "tacrolimus_dose", label: "TAC DOSE", skip: true },
   { key: "mmf_dose", label: "MMF", skip: true },
   { key: "steroid_dose", label: "STEROID", skip: true },
-] as const;
+];
 
 type RowData = Record<string, string>;
 
