@@ -207,12 +207,15 @@ function DateGroupValues({
           const isOutOfRange = ref && !isNaN(numVal) && (
             (ref.min !== null && numVal < ref.min) || (ref.max !== null && numVal > ref.max)
           );
+          const isSusp = !isNaN(numVal) && isSuspicious(field.key, numVal);
 
           return (
             <div
               key={field.key}
               className={`space-y-1 rounded-lg border p-2.5 ${
-                isLowConf
+                isSusp
+                  ? "border-destructive bg-destructive/10 ring-2 ring-destructive/40"
+                  : isLowConf
                   ? "border-destructive/40 bg-destructive/5 ring-1 ring-destructive/20"
                   : isOutOfRange
                   ? "border-warning/40 bg-warning/5"
