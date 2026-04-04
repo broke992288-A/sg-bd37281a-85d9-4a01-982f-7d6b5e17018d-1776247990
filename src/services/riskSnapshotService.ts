@@ -228,6 +228,7 @@ function computeRiskWithDbThresholds(
     creatinine: lab.creatinine, egfr: lab.egfr, potassium: lab.potassium,
     proteinuria: lab.proteinuria, hb: lab.hb, albumin: lab.albumin,
     platelets: lab.platelets, inr: lab.inr, alp: lab.alp, ggt: lab.ggt, crp: lab.crp,
+    bk_virus_load: (lab as any).bk_virus_load, cmv_load: (lab as any).cmv_load, dsa_mfi: (lab as any).dsa_mfi,
   };
 
   // ── Time-dependent Tacrolimus scoring (skip DB threshold for tacrolimus) ──
