@@ -29,6 +29,7 @@ import RiskScoreCard from "@/components/features/RiskScoreCard";
 import AddLabDialog from "@/components/features/AddLabDialog";
 import LabUploadDialog from "@/components/features/LabUploadDialog";
 import LabHistoryTable from "@/components/features/LabHistoryTable";
+import DoctorNotesCard from "@/components/features/DoctorNotesCard";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -165,6 +166,9 @@ export default function PatientDetail() {
           />
           <PatientLabScheduleCard patientId={patient.id} />
         </div>
+
+        {/* Doctor Notes */}
+        <DoctorNotesCard patientId={patient.id} />
 
         {/* ROW 4: Risk details + Override + Recalculate */}
         <div className="grid gap-4 lg:grid-cols-2">
