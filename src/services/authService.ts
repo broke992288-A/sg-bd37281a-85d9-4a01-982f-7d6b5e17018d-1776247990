@@ -72,9 +72,9 @@ export async function registerPatientSelf(params: {
 }) {
   const { data, error } = await supabase.rpc("register_patient_self", {
     _full_name: params.fullName,
-    _phone: params.phone || null,
-    _date_of_birth: params.dateOfBirth || null,
-    _gender: params.gender || null,
+    _phone: params.phone ?? undefined,
+    _date_of_birth: params.dateOfBirth ?? undefined,
+    _gender: params.gender ?? undefined,
   });
   if (error) throw error;
   return data;

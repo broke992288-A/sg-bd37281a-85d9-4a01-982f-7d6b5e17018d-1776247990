@@ -57,7 +57,7 @@ const ALL_HEADERS: { key: LabNumericKey; label: string }[] = [
 ];
 
 function getCellColor(key: string, value: number): string {
-  const ref = REFERENCE_RANGES[key];
+  const ref = REFERENCE_RANGES[key as LabNumericKey];
   if (!ref) return "";
   if (value >= ref.min && value <= ref.max) return "";
   const lowBorder = ref.min * 0.9;
