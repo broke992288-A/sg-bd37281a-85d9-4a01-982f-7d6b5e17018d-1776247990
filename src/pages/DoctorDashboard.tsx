@@ -8,12 +8,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDoctorPatientsWithLabs } from "@/hooks/usePatients";
+import { useSmartPriorityQueue } from "@/hooks/useSmartPriorityQueue";
 import { riskColorClass, daysSince } from "@/utils/risk";
 import { SkeletonCard, SkeletonTable, SkeletonChart } from "@/components/ui/skeleton-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import PredictionPanel from "@/components/features/PredictionPanel";
 import PatientPriorityPanel from "@/components/features/PatientPriorityPanel";
 import OverdueLabsPanel from "@/components/features/OverdueLabsPanel";
+import type { UrgencyTier } from "@/utils/smartPriority";
 
 function timeAgo(dateStr: string | null, t: (k: string) => string): string {
   if (!dateStr) return "—";
