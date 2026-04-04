@@ -222,6 +222,7 @@ serve(async (req) => {
           creatinine: lab.creatinine, egfr: lab.egfr, potassium: lab.potassium,
           proteinuria: lab.proteinuria, hb: lab.hb, albumin: lab.albumin,
           platelets: lab.platelets, inr: lab.inr, alp: lab.alp, ggt: lab.ggt, crp: lab.crp,
+          bk_virus_load: lab.bk_virus_load, cmv_load: lab.cmv_load, dsa_mfi: lab.dsa_mfi,
         };
 
         // ── Time-dependent Tacrolimus scoring ──
