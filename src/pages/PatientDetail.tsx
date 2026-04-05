@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { usePatientDetail } from "@/hooks/usePatientDetail";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useRiskSnapshots } from "@/hooks/useRiskSnapshots";
 import { updatePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
@@ -19,6 +17,8 @@ import { logAudit } from "@/services/auditService";
 import { computeRiskScore } from "@/services/riskSnapshotService";
 import type { RiskSnapshot } from "@/services/riskSnapshotService";
 import { triggerRiskRecalculation } from "@/services/riskRecalculationService";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import PatientCockpitHeader from "@/components/features/PatientCockpitHeader";
 import LatestLabsTable from "@/components/features/LatestLabsTable";
@@ -39,6 +39,7 @@ export default function PatientDetail() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const { patient, labs: allLabs, latestLab, events: timeline, loading, invalidateAll } = usePatientDetail(id);
   const { data: riskSnapshots = [] } = useRiskSnapshots(id, 20);
@@ -126,88 +127,109 @@ export default function PatientDetail() {
   if (loading) return <DashboardLayout><div className="flex items-center justify-center py-20 text-muted-foreground">{t("common.loading")}</div></DashboardLayout>;
   if (!patient) return <DashboardLayout><div className="flex items-center justify-center py-20 text-muted-foreground">{t("detail.patientNotFound")}</div></DashboardLayout>;
 
+  const direction = isMobile ? "vertical" as const : "horizontal" as const;
+
   return (
     <DashboardLayout>
       <div className="space-y-4 overflow-hidden">
         {/* TOP HEADER CARD */}
         <PatientCockpitHeader patient={patient} latestRisk={latestRisk} onUpdated={invalidateAll} />
 
-        {/* ROW 1: Labs table + Trend charts */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-2">
-            <LatestLabsTable labs={allLabs} organType={patient.organ_type} />
-            <div className="flex flex-wrap gap-2">
-              <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} patientCountry={(patient as Record<string, unknown>).country as string} />
-              <LabUploadDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} patientCountry={(patient as Record<string, unknown>).country as string} />
-              <BulkLabEntryDialog patientId={patient.id} organType={patient.organ_type} onLabsAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} />
+        {/* ROW 1: Labs table + Trend charts — resizable */}
+        <ResizablePanelGroup direction={direction} className="min-h-[350px] rounded-lg border">
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 space-y-2 h-full overflow-auto">
+              <LatestLabsTable labs={allLabs} organType={patient.organ_type} />
+              <div className="flex flex-wrap gap-2">
+                <AddLabDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} patientCountry={(patient as Record<string, unknown>).country as string} />
+                <LabUploadDialog patientId={patient.id} organType={patient.organ_type} onLabAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history }} patientCountry={(patient as Record<string, unknown>).country as string} />
+                <BulkLabEntryDialog patientId={patient.id} organType={patient.organ_type} onLabsAdded={invalidateAll} patientData={{ transplant_number: patient.transplant_number, dialysis_history: patient.dialysis_history, transplant_date: patient.transplant_date, date_of_birth: patient.date_of_birth, gender: patient.gender }} />
+              </div>
             </div>
-          </div>
-          <Card className="h-full">
-            <CardContent className="pt-4">
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 h-full overflow-auto">
               <LabTrendCharts labs={allLabs} />
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
         {/* ROW 2: Medications */}
         <div className="grid gap-4 lg:grid-cols-2">
           <ActiveMedicationsCard patientId={patient.id} />
         </div>
 
-        {/* ROW 3: AI Prediction + Lab Schedule */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <PredictionPanel
-            patientId={patient.id}
-            patientName={patient.full_name}
-            organType={patient.organ_type}
-            currentRisk={latestRisk?.risk_level ?? patient.risk_level}
-            patientData={{
-              blood_type: patient.blood_type,
-              donor_blood_type: patient.donor_blood_type,
-              titer_therapy: patient.titer_therapy,
-            }}
-          />
-          <PatientLabScheduleCard patientId={patient.id} />
-        </div>
+        {/* ROW 3: AI Prediction + Lab Schedule — resizable */}
+        <ResizablePanelGroup direction={direction} className="min-h-[300px] rounded-lg border">
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 h-full overflow-auto">
+              <PredictionPanel
+                patientId={patient.id}
+                patientName={patient.full_name}
+                organType={patient.organ_type}
+                currentRisk={latestRisk?.risk_level ?? patient.risk_level}
+                patientData={{
+                  blood_type: patient.blood_type,
+                  donor_blood_type: patient.donor_blood_type,
+                  titer_therapy: patient.titer_therapy,
+                }}
+              />
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 h-full overflow-auto">
+              <PatientLabScheduleCard patientId={patient.id} />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
         {/* Doctor Notes */}
         <DoctorNotesCard patientId={patient.id} />
 
-        {/* ROW 4: Risk details + Override + Recalculate */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-2">
-            <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
-            <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating} className="w-full">
-              {recalculating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
-              {t("detail.recalculateRisk")}
-            </Button>
-          </div>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{t("detail.aiAdvisory")}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{t("detail.orOverride")}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Select value={overrideLevel} onValueChange={setOverrideLevel}>
-                  <SelectTrigger><SelectValue placeholder={t("detail.newRiskLevel")} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">LOW</SelectItem>
-                    <SelectItem value="medium">MEDIUM</SelectItem>
-                    <SelectItem value="high">HIGH</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Textarea placeholder={t("detail.overrideReason")} value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)} className="min-h-[60px]" />
-              </div>
-              <Button size="sm" variant="outline" onClick={handleOverride} disabled={overriding}>{t("detail.overrideRisk")}</Button>
-            </CardContent>
-          </Card>
-        </div>
+        {/* ROW 4: Risk details + Override — resizable */}
+        <ResizablePanelGroup direction={direction} className="min-h-[280px] rounded-lg border">
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 space-y-2 h-full overflow-auto">
+              <RiskScoreCard snapshot={latestRisk} prevSnapshot={prevRisk} />
+              <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating} className="w-full">
+                {recalculating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+                {t("detail.recalculateRisk")}
+              </Button>
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div className="p-3 h-full overflow-auto">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">{t("detail.aiAdvisory")}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">{t("detail.orOverride")}</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Select value={overrideLevel} onValueChange={setOverrideLevel}>
+                      <SelectTrigger><SelectValue placeholder={t("detail.newRiskLevel")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">LOW</SelectItem>
+                        <SelectItem value="medium">MEDIUM</SelectItem>
+                        <SelectItem value="high">HIGH</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Textarea placeholder={t("detail.overrideReason")} value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)} className="min-h-[60px]" />
+                  </div>
+                  <Button size="sm" variant="outline" onClick={handleOverride} disabled={overriding}>{t("detail.overrideRisk")}</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
-        {/* Lab History (full table, collapsible area) */}
+        {/* Lab History */}
         {allLabs.length > 0 && (
           <Card>
             <CardHeader className="flex flex-row items-center gap-2">
