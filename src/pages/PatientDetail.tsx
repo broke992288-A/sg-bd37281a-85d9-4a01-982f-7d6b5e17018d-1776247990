@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { usePatientDetail } from "@/hooks/usePatientDetail";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useRiskSnapshots } from "@/hooks/useRiskSnapshots";
 import { updatePatient } from "@/services/patientService";
 import { insertEvent } from "@/services/eventService";
