@@ -317,7 +317,7 @@ describe("Hemoglobin (Hb) scoring — KDIGO 2024 / AASLD 2023", () => {
 
   it("no points when Hb is 0 or missing", () => {
     expect(calculateRiskScore("kidney", { hb: 0, tacrolimus_level: 5 })).toBe(0);
-    expect(calculateRiskScore("kidney", {})).toBe(0);
+    expect(calculateRiskScore("kidney", { tacrolimus_level: 5 })).toBe(0);
   });
 });
 
