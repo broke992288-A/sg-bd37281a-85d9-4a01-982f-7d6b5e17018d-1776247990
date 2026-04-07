@@ -509,7 +509,7 @@ export function computeRiskScore(
       flags.push(`eGFR declining: ${egfrTrend.change_pct.toFixed(0)}%`);
       explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(egfrTrend.change_pct).toFixed(0)}% vs median of previous ${egfrTrend.sample_count} test(s)`, severity: "warning", change_pct: egfrTrend.change_pct });
     }
-    const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tacResult.pts > 0].filter(Boolean).length;
+    const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tac <= 0].filter(Boolean).length;
     if (abnormalCount >= 2) { score += 10; flags.push(`Multiple abnormal: ${abnormalCount}`); explanations.push({ key: "multiple_abnormal", message: `${abnormalCount} values abnormal`, severity: "warning" }); }
   }
 
