@@ -18,6 +18,7 @@ import type { OrganType } from "@/types/patient";
 interface Props {
   patient: Record<string, any>;
   latestRisk: RiskSnapshot | null;
+  latestLab?: Record<string, any> | null;
   onUpdated: () => void;
 }
 
