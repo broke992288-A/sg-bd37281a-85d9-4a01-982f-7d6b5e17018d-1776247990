@@ -252,6 +252,17 @@ function computeRiskWithDbThresholds(
         guideline: tacResult.guideline,
       });
     }
+  } else {
+    // Missing Tacrolimus data warning
+    const missingPts = organType === "kidney" ? 15 : 12;
+    score += missingPts;
+    flags.push("Tacrolimus data missing");
+    explanations.push({
+      key: "tacrolimus_missing",
+      message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level. Please check lab results.",
+      severity: "warning",
+      guideline: organType === "kidney" ? "KDIGO 2009/2024" : "AASLD 2021/2023",
+    });
   }
 
   // ── Evaluate other thresholds from DB (skip tacrolimus — handled above) ──
@@ -408,11 +419,17 @@ export function computeRiskScore(
 
   if (organType === "liver") {
     // Time-dependent tacrolimus
-    const tacResult = liverTacrolimusScore(tac, daysSinceTx);
-    if (tacResult.pts > 0) {
-      score += tacResult.pts;
-      flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
-      explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+    if (tac > 0) {
+      const tacResult = liverTacrolimusScore(tac, daysSinceTx);
+      if (tacResult.pts > 0) {
+        score += tacResult.pts;
+        flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
+        explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+      }
+    } else {
+      score += 12;
+      flags.push("Tacrolimus data missing");
+      explanations.push({ key: "tacrolimus_missing", message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level", severity: "warning", guideline: "AASLD 2021/2023" });
     }
 
     if (alt > FALLBACK_THRESHOLDS.alt.critical) { score += 30; flags.push(`ALT critical: ${alt}`); explanations.push({ key: "alt_critical", message: `ALT ${alt} U/L critically elevated`, severity: "critical", value: alt, threshold: FALLBACK_THRESHOLDS.alt.critical }); }
@@ -446,11 +463,17 @@ export function computeRiskScore(
     }
   } else {
     // Time-dependent tacrolimus for kidney
-    const tacResult = kidneyTacrolimusScore(tac, daysSinceTx);
-    if (tacResult.pts > 0) {
-      score += tacResult.pts;
-      flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
-      explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+    if (tac > 0) {
+      const tacResult = kidneyTacrolimusScore(tac, daysSinceTx);
+      if (tacResult.pts > 0) {
+        score += tacResult.pts;
+        flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
+        explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+      }
+    } else {
+      score += 15;
+      flags.push("Tacrolimus data missing");
+      explanations.push({ key: "tacrolimus_missing", message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level", severity: "warning", guideline: "KDIGO 2009/2024" });
     }
 
     if (cr > FALLBACK_THRESHOLDS.creatinine.critical) { score += 35; flags.push(`Creatinine critical: ${cr}`); explanations.push({ key: "creatinine_critical", message: `Creatinine ${cr} mg/dL critically elevated`, severity: "critical", value: cr, threshold: FALLBACK_THRESHOLDS.creatinine.critical }); }
@@ -486,7 +509,7 @@ export function computeRiskScore(
       flags.push(`eGFR declining: ${egfrTrend.change_pct.toFixed(0)}%`);
       explanations.push({ key: "egfr_trend_down", message: `eGFR declined ${Math.abs(egfrTrend.change_pct).toFixed(0)}% vs median of previous ${egfrTrend.sample_count} test(s)`, severity: "warning", change_pct: egfrTrend.change_pct });
     }
-    const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tacResult.pts > 0].filter(Boolean).length;
+    const abnormalCount = [cr > FALLBACK_THRESHOLDS.creatinine.warning, egfr < 45, tac <= 0].filter(Boolean).length;
     if (abnormalCount >= 2) { score += 10; flags.push(`Multiple abnormal: ${abnormalCount}`); explanations.push({ key: "multiple_abnormal", message: `${abnormalCount} values abnormal`, severity: "warning" }); }
   }
 

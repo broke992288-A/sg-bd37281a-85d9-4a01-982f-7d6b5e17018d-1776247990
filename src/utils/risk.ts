@@ -30,6 +30,17 @@ function num(data: Record<string, number | string | boolean | null | undefined>,
   return parseFloat(String(data[key] ?? fallback)) || fallback;
 }
 
+// ─── MISSING TACROLIMUS WARNING ───
+
+/** If tacrolimus data is missing entirely, add warning points. */
+function missingTacrolimusScore(tac: number, organ: OrganType): { pts: number; message: string } {
+  if (tac > 0) return { pts: 0, message: "" };
+  return {
+    pts: organ === "kidney" ? 15 : 12,
+    message: "Tacrolimus data missing — cannot assess immunosuppression level",
+  };
+}
+
 // ─── TACROLIMUS SCORING ───
 
 /** Time-dependent Tacrolimus scoring for Kidney (KDIGO 2009/2024). */
@@ -117,6 +128,9 @@ export function calculateRiskScore(organ: OrganType, data: Record<string, number
   score += hemoglobinScore(num(data, "hb"), organ);
   score += crpScore(num(data, "crp"));
   score += calciumScore(num(data, "calcium"), organ);
+
+  // ── Missing Tacrolimus warning ──
+  score += missingTacrolimusScore(num(data, "tacrolimus_level"), organ).pts;
 
   // ── Organ-specific models ──
   if (organ === "liver") {
@@ -278,4 +292,4 @@ export function getAge(dob: string | null) {
   return Math.floor((Date.now() - new Date(dob).getTime()) / 31557600000);
 }
 
-export { kidneyTacrolimusScore, liverTacrolimusScore };
+export { kidneyTacrolimusScore, liverTacrolimusScore, missingTacrolimusScore };

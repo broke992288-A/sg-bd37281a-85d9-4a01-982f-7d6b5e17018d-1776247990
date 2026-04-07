@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pill, Trash2, Stethoscope, CalendarClock } from "lucide-react";
+import { ArrowLeft, Pill, Trash2, Stethoscope, CalendarClock, AlertTriangle, Info } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import EditPatientDialog from "@/components/features/EditPatientDialog";
@@ -12,18 +12,35 @@ import { riskColorClass } from "@/utils/risk";
 import { useLabSchedules } from "@/hooks/useLabSchedule";
 import patientPhotoAbdulhayot from "@/assets/patient-photo-edited.jpg";
 import type { RiskSnapshot } from "@/services/riskSnapshotService";
+import { useClinicalLogic } from "@/hooks/useClinicalLogic";
+import type { OrganType } from "@/types/patient";
 
 interface Props {
   patient: Record<string, any>;
   latestRisk: RiskSnapshot | null;
+  latestLab?: Record<string, any> | null;
   onUpdated: () => void;
 }
 
-export default function PatientCockpitHeader({ patient, latestRisk, onUpdated }: Props) {
+export default function PatientCockpitHeader({ patient, latestRisk, latestLab, onUpdated }: Props) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: schedules = [] } = useLabSchedules(patient.id);
+
+  const { tacrolimusTarget, criticalCount, evaluation } = useClinicalLogic({
+    organType: patient.organ_type as OrganType,
+    lab: latestLab,
+    patient: {
+      id: patient.id,
+      transplant_date: patient.transplant_date,
+      transplant_number: patient.transplant_number,
+      dialysis_history: patient.dialysis_history,
+      blood_type: patient.blood_type,
+      donor_blood_type: patient.donor_blood_type,
+      titer_therapy: patient.titer_therapy,
+    },
+  });
 
   const riskScore = latestRisk?.score ?? patient.risk_score ?? 0;
   const riskLevel = latestRisk?.risk_level ?? patient.risk_level ?? "low";
@@ -82,7 +99,30 @@ export default function PatientCockpitHeader({ patient, latestRisk, onUpdated }:
             </div>
           </div>
 
-          {patient.risk_level === "high" && (
+          {/* Tacrolimus target info */}
+          {tacrolimusTarget && (
+            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 flex items-center gap-3 text-sm">
+              <Info className="h-4 w-4 text-primary flex-shrink-0" />
+              <span>
+                <span className="font-medium">Tacrolimus C0 target:</span>{" "}
+                <span className="text-primary font-bold">{tacrolimusTarget.target} ng/mL</span>
+                <span className="text-muted-foreground"> • {tacrolimusTarget.stage} • {tacrolimusTarget.guideline}</span>
+              </span>
+            </div>
+          )}
+
+          {/* Clinical warnings from ClinicalLogic */}
+          {criticalCount > 0 && evaluation?.warnings
+            .filter((w) => w.severity === "critical")
+            .slice(0, 2)
+            .map((w, i) => (
+              <div key={i} className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 flex items-center gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                <span className="font-medium">{w.title}: <span className="font-normal text-muted-foreground">{w.message}</span></span>
+              </div>
+            ))}
+
+          {riskLevel === "high" && criticalCount === 0 && (
             <div className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2 flex items-center gap-2 text-sm">
               <Stethoscope className="h-4 w-4 text-warning" />
               <span className="font-medium">{t("detail.underReview")}</span>
