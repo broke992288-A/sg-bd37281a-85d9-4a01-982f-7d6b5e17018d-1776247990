@@ -252,6 +252,17 @@ function computeRiskWithDbThresholds(
         guideline: tacResult.guideline,
       });
     }
+  } else {
+    // Missing Tacrolimus data warning
+    const missingPts = organType === "kidney" ? 15 : 12;
+    score += missingPts;
+    flags.push("Tacrolimus data missing");
+    explanations.push({
+      key: "tacrolimus_missing",
+      message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level. Please check lab results.",
+      severity: "warning",
+      guideline: organType === "kidney" ? "KDIGO 2009/2024" : "AASLD 2021/2023",
+    });
   }
 
   // ── Evaluate other thresholds from DB (skip tacrolimus — handled above) ──
