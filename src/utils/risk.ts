@@ -292,4 +292,4 @@ export function getAge(dob: string | null) {
   return Math.floor((Date.now() - new Date(dob).getTime()) / 31557600000);
 }
 
-export { kidneyTacrolimusScore, liverTacrolimusScore };
+export { kidneyTacrolimusScore, liverTacrolimusScore, missingTacrolimusScore };
