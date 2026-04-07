@@ -30,6 +30,17 @@ function num(data: Record<string, number | string | boolean | null | undefined>,
   return parseFloat(String(data[key] ?? fallback)) || fallback;
 }
 
+// ─── MISSING TACROLIMUS WARNING ───
+
+/** If tacrolimus data is missing entirely, add warning points. */
+function missingTacrolimusScore(tac: number, organ: OrganType): { pts: number; message: string } {
+  if (tac > 0) return { pts: 0, message: "" };
+  return {
+    pts: organ === "kidney" ? 15 : 12,
+    message: "Tacrolimus data missing — cannot assess immunosuppression level",
+  };
+}
+
 // ─── TACROLIMUS SCORING ───
 
 /** Time-dependent Tacrolimus scoring for Kidney (KDIGO 2009/2024). */
