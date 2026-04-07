@@ -419,11 +419,17 @@ export function computeRiskScore(
 
   if (organType === "liver") {
     // Time-dependent tacrolimus
-    const tacResult = liverTacrolimusScore(tac, daysSinceTx);
-    if (tacResult.pts > 0) {
-      score += tacResult.pts;
-      flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
-      explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+    if (tac > 0) {
+      const tacResult = liverTacrolimusScore(tac, daysSinceTx);
+      if (tacResult.pts > 0) {
+        score += tacResult.pts;
+        flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
+        explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+      }
+    } else {
+      score += 12;
+      flags.push("Tacrolimus data missing");
+      explanations.push({ key: "tacrolimus_missing", message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level", severity: "warning", guideline: "AASLD 2021/2023" });
     }
 
     if (alt > FALLBACK_THRESHOLDS.alt.critical) { score += 30; flags.push(`ALT critical: ${alt}`); explanations.push({ key: "alt_critical", message: `ALT ${alt} U/L critically elevated`, severity: "critical", value: alt, threshold: FALLBACK_THRESHOLDS.alt.critical }); }
