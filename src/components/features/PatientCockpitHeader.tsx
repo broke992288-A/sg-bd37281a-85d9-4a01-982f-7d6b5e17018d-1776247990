@@ -22,11 +22,25 @@ interface Props {
   onUpdated: () => void;
 }
 
-export default function PatientCockpitHeader({ patient, latestRisk, onUpdated }: Props) {
+export default function PatientCockpitHeader({ patient, latestRisk, latestLab, onUpdated }: Props) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: schedules = [] } = useLabSchedules(patient.id);
+
+  const { tacrolimusTarget, criticalCount, evaluation } = useClinicalLogic({
+    organType: patient.organ_type as OrganType,
+    lab: latestLab,
+    patient: {
+      id: patient.id,
+      transplant_date: patient.transplant_date,
+      transplant_number: patient.transplant_number,
+      dialysis_history: patient.dialysis_history,
+      blood_type: patient.blood_type,
+      donor_blood_type: patient.donor_blood_type,
+      titer_therapy: patient.titer_therapy,
+    },
+  });
 
   const riskScore = latestRisk?.score ?? patient.risk_score ?? 0;
   const riskLevel = latestRisk?.risk_level ?? patient.risk_level ?? "low";
