@@ -528,3 +528,25 @@ describe("Combined KDIGO/AASLD parameter interactions", () => {
     expect(score).toBe(100);
   });
 });
+
+describe("Missing Tacrolimus warning", () => {
+  it("kidney: +15 when tacrolimus_level is missing", () => {
+    const score = calculateRiskScore("kidney", {});
+    expect(score).toBe(15);
+  });
+
+  it("liver: +12 when tacrolimus_level is missing", () => {
+    const score = calculateRiskScore("liver", {});
+    expect(score).toBe(12);
+  });
+
+  it("kidney: +15 when tacrolimus_level is 0", () => {
+    const score = calculateRiskScore("kidney", { tacrolimus_level: 0 });
+    expect(score).toBe(15);
+  });
+
+  it("no penalty when tacrolimus_level is provided", () => {
+    const score = calculateRiskScore("kidney", { tacrolimus_level: 5 });
+    expect(score).toBe(0);
+  });
+});
