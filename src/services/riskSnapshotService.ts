@@ -463,11 +463,17 @@ export function computeRiskScore(
     }
   } else {
     // Time-dependent tacrolimus for kidney
-    const tacResult = kidneyTacrolimusScore(tac, daysSinceTx);
-    if (tacResult.pts > 0) {
-      score += tacResult.pts;
-      flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
-      explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+    if (tac > 0) {
+      const tacResult = kidneyTacrolimusScore(tac, daysSinceTx);
+      if (tacResult.pts > 0) {
+        score += tacResult.pts;
+        flags.push(`Tacrolimus ${tac} outside [${tacResult.target}]`);
+        explanations.push({ key: tac < 5 ? "tacrolimus_low" : "tacrolimus_high", message: `Tacrolimus ${tac} ng/mL outside target [${tacResult.target}] (${tacResult.guideline})`, severity: "critical", value: tac, guideline: tacResult.guideline });
+      }
+    } else {
+      score += 15;
+      flags.push("Tacrolimus data missing");
+      explanations.push({ key: "tacrolimus_missing", message: "Tacrolimus (C0) data is missing — cannot assess immunosuppression level", severity: "warning", guideline: "KDIGO 2009/2024" });
     }
 
     if (cr > FALLBACK_THRESHOLDS.creatinine.critical) { score += 35; flags.push(`Creatinine critical: ${cr}`); explanations.push({ key: "creatinine_critical", message: `Creatinine ${cr} mg/dL critically elevated`, severity: "critical", value: cr, threshold: FALLBACK_THRESHOLDS.creatinine.critical }); }
