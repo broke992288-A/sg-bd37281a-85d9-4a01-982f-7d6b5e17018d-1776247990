@@ -345,7 +345,7 @@ export async function preprocessLabImage(file: File): Promise<PreprocessResult> 
 
   // ─── PDF: pass through without image preprocessing ───
   if (category === "pdf") {
-    const renderedCanvas = await renderPdfFirstPage(file);
+    const renderedCanvas = await renderPdfAllPages(file);
     const processed = await canvasToProcessedResult(renderedCanvas, file.name);
     return { ...processed, storageFile: file };
   }
