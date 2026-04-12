@@ -234,7 +234,7 @@ async function canvasToProcessedResult(
 }
 
 /** Render the first page of a PDF to canvas for OCR */
-async function renderPdfFirstPage(file: File): Promise<HTMLCanvasElement> {
+async function renderPdfAllPages(file: File): Promise<HTMLCanvasElement> {
   const pdfjs = await import("pdfjs-dist");
   const pdfData = new Uint8Array(await file.arrayBuffer());
   const loadingTask = pdfjs.getDocument({ data: pdfData, disableWorker: true } as any);
