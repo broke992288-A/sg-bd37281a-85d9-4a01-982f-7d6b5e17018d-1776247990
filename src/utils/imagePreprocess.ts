@@ -336,11 +336,10 @@ export async function preprocessLabImage(file: File): Promise<PreprocessResult> 
     return { base64, file, fileType: ext };
   }
 
-  // ─── PDF: render to image via pdfjs, store original PDF ───
+  // ─── PDF: send directly as base64 (no client-side rendering) ───
   if (category === "pdf") {
-    const renderedCanvas = await renderPdfAllPages(file);
-    const processed = await canvasToProcessedResult(renderedCanvas, file.name);
-    return { ...processed, storageFile: file };
+    const base64 = await fileToBase64(file);
+    return { base64, file, storageFile: file, fileType: "pdf" };
   }
 
   // ─── Images: full preprocessing pipeline ───

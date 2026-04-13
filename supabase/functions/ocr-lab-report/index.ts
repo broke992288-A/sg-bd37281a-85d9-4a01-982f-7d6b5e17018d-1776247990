@@ -190,8 +190,16 @@ serve(async (req) => {
           text: `I'm uploading a ${fileType.toUpperCase()} office document containing laboratory results. The file is provided as base64-encoded binary. Please analyze and extract all lab values from this document.\n\nIMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.\n\nBase64 content (${fileType}):\n${imageBase64.substring(0, 50000)}`,
         },
       ];
+    } else if (fileType === "pdf") {
+      // PDF: send base64 content as text for extraction (AI Gateway doesn't support PDF in image_url)
+      userContent = [
+        {
+          type: "text",
+          text: `I'm uploading a PDF document containing laboratory results. The file is provided as base64-encoded PDF binary. Please analyze and extract all lab values from this document.\n\nIMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.\n\nBase64 PDF content:\n${imageBase64.substring(0, 100000)}`,
+        },
+      ];
     } else {
-      // Images (including PDF rendered as JPEG on client): send as image_url
+      // Images: send as image_url
       const mediaType = fileType === "png" ? "image/png" : "image/jpeg";
       userContent = [
         {
