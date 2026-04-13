@@ -168,3 +168,4 @@ npx playwright test
 <p align="center">
   <b>TransplantCare</b> — Lovable ёрдамида яратилган 💚
 </p>
+test deploy
