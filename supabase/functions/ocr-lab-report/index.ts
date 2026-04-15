@@ -73,10 +73,6 @@ function isOfficeFile(fileType: string): boolean {
   return OFFICE_FILE_TYPES.includes(fileType.toLowerCase());
 }
 
-function isImageFile(fileType: string): boolean {
-  return ["jpeg", "jpg", "png", "webp", "bmp", "tiff", "tif"].includes(fileType.toLowerCase());
-}
-
 const systemPrompt = `You are an expert medical laboratory report OCR system. Your job is to extract lab values from report images, documents, or text with high accuracy.
 
 CRITICAL: A single document may contain lab results from MULTIPLE DIFFERENT DATES. You MUST detect ALL dates and group results by date.

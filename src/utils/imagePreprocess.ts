@@ -345,8 +345,7 @@ export async function preprocessLabImage(file: File): Promise<PreprocessResult> 
       base64,
       file,
       storageFile: file,
-      fileType,
-      textContent: null
+      fileType: isPDF ? "pdf" : fileType,
     };
   }
 
@@ -355,29 +354,6 @@ export async function preprocessLabImage(file: File): Promise<PreprocessResult> 
     throw new Error("Unsupported file type");
   }
 
-  const category = getFileCategory(file.name);
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-
-  // ─── Text files: read content directly ───
-  if (category === "text") {
-    const textContent = await readTextFile(file);
-    const base64 = fileToBase64ToString(textContent);
-    return { base64, file, fileType: ext, textContent };
-  }
-
-  // ─── Office files: send as binary for server-side parsing ───
-  if (category === "office") {
-    const base64 = await fileToBase64(file);
-    return { base64, file, fileType: ext };
-  }
-
-  // ─── PDF: send directly as base64 (no client-side rendering) ───
-  if (category === "pdf") {
-    const base64 = await fileToBase64(file);
-    return { base64, file, storageFile: file, fileType: "pdf" };
-  }
-
-  // ─── Images: full preprocessing pipeline ───
   const img = await loadImage(file);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
