@@ -33,15 +33,20 @@ export default function Login() {
         setIsForgot(false);
       } else {
         await signIn(email, password);
-logAudit({ action: "user_login", metadata: { email } });
+        logAudit({ action: "user_login", metadata: { email } });
 
-setTimeout(() => {
-  navigate("/select-role");
-}, 300);
+        setTimeout(() => {
+          navigate("/select-role");
+        }, 300);
       }
     } catch (err: unknown) {
+      console.error("Login Error:", err);
       const message = err instanceof Error ? err.message : String(err);
-      toast({ title: t("common.error"), description: message, variant: "destructive" });
+      toast({ 
+        title: "Tizimga kirishda xatolik", 
+        description: message === "Invalid login credentials" ? "Email yoki parol noto'g'ri kiritildi. Agar akkauntingiz bo'lmasa, avval ro'yxatdan o'tishingiz kerak." : message, 
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
     }
