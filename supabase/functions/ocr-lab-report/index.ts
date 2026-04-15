@@ -182,20 +182,27 @@ serve(async (req) => {
         },
       ];
     } else if (isOfficeFile(fileType)) {
-      // Office files: send as base64 binary with description
-      // GPT-5-mini can handle document understanding from images, so we describe the format
+      // Office files: treat as document images - GPT-5-mini can analyze document structure
       userContent = [
         {
           type: "text",
-          text: `I'm uploading a ${fileType.toUpperCase()} office document containing laboratory results. The file is provided as base64-encoded binary. Please analyze and extract all lab values from this document.\n\nIMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.\n\nBase64 content (${fileType}):\n${imageBase64.substring(0, 50000)}`,
+          text: `I'm uploading a ${fileType.toUpperCase()} office document containing laboratory results. Please analyze and extract all lab values.\n\nIMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.`,
+        },
+        {
+          type: "image_url",
+          image_url: { url: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${imageBase64}` },
         },
       ];
     } else if (fileType === "pdf") {
-      // PDF: send base64 content as text for extraction (AI Gateway doesn't support PDF in image_url)
+      // PDF: send as proper PDF data URI
       userContent = [
         {
           type: "text",
-          text: `I'm uploading a PDF document containing laboratory results. The file is provided as base64-encoded PDF binary. Please analyze and extract all lab values from this document.\n\nIMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.\n\nBase64 PDF content:\n${imageBase64.substring(0, 100000)}`,
+          text: "Extract all lab values from this PDF laboratory report. IMPORTANT: If the document contains results from multiple dates, return EACH date as a separate group. Detect the layout, normalize test names across languages (English, Russian, Uzbek), and provide confidence scores for each value.",
+        },
+        {
+          type: "image_url",
+          image_url: { url: `data:application/pdf;base64,${imageBase64}` },
         },
       ];
     } else {
