@@ -320,6 +320,41 @@ export interface PreprocessResult {
  * Supports: images, PDFs, text files (TXT/CSV), Office files (DOCX/XLSX).
  */
 export async function preprocessLabImage(file: File): Promise<PreprocessResult> {
+  const fileType = file.type.split("/").pop()?.toLowerCase() ?? "jpg";
+  const isImage = file.type.startsWith("image/");
+  const isPDF = file.type === "application/pdf";
+  const isTextFile = TEXT_FILE_TYPES.includes(fileType);
+  const isOfficeFile = OFFICE_FILE_TYPES.includes(fileType);
+
+  // For text files, read content directly
+  if (isTextFile) {
+    const textContent = await file.text();
+    return {
+      base64: "", // Not needed for text files
+      file,
+      storageFile: file,
+      fileType,
+      textContent
+    };
+  }
+
+  // For PDFs and Office files, convert to base64 directly without preprocessing
+  if (isPDF || isOfficeFile) {
+    const base64 = await fileToBase64(file);
+    return {
+      base64,
+      file,
+      storageFile: file,
+      fileType,
+      textContent: null
+    };
+  }
+
+  // For images, apply preprocessing
+  if (!isImage) {
+    throw new Error("Unsupported file type");
+  }
+
   const category = getFileCategory(file.name);
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
 
