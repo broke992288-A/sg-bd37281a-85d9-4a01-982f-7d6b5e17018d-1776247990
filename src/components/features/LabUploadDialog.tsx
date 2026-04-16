@@ -313,11 +313,18 @@ export default function LabUploadDialog({ patientId, organType, patientData, onL
       const { data: urlData } = await supabase.storage.from("lab_reports").createSignedUrl(path, 60 * 60 * 24);
       setReportUrl(urlData?.signedUrl ?? null);
 
+      console.log("🔍 Calling Edge Function with:", { fileType, hasBase64: !!base64, hasTextContent: !!textContent });
+
       const { data: ocrData, error: ocrErr } = await supabase.functions.invoke("ocr-lab-report", {
         body: { imageBase64: base64, fileType, textContent },
       });
 
-      if (ocrErr) throw ocrErr;
+      console.log("📡 Edge Function response:", { ocrData, ocrErr });
+
+      if (ocrErr) {
+        console.error("❌ Edge Function error details:", ocrErr);
+        throw ocrErr;
+      }
       if (ocrData?.error) throw new Error(ocrData.error);
 
       let groups: DateGroup[] = [];
