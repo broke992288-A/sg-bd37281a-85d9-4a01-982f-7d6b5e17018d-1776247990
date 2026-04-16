@@ -185,6 +185,21 @@ const TEXT_EXTENSIONS = ["txt", "csv", "tsv", "log", "text"];
 const OFFICE_EXTENSIONS = ["docx", "xlsx", "xls", "doc"];
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "bmp", "tiff", "tif"];
 
+/** MIME types for text files */
+const TEXT_FILE_TYPES = ["txt", "csv", "tsv", "log", "text", "plain"];
+
+/** MIME types for Office files */
+const OFFICE_FILE_TYPES = [
+  "docx", 
+  "xlsx", 
+  "xls", 
+  "doc",
+  "vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "vnd.ms-excel",
+  "msword"
+];
+
 /** Determine file category from extension */
 function getFileCategory(fileName: string): "image" | "pdf" | "text" | "office" {
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
