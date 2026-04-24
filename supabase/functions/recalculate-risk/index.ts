@@ -16,36 +16,26 @@ async function authenticateRequest(req: Request, corsHeaders: Record<string, str
   }
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
   const token = authHeader.replace("Bearer ", "");
-  const { data, error } = await supabase.auth.getClaims(token);
-  if (error || !data?.claims) {
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data?.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
-  return { userId: data.claims.sub as string };
+  return { userId: data.user.id };
 }
 
 const FN_NAME = "recalculate-risk";
 const ALGORITHM_VERSION = "v3.0-kdigo2024-aasld2023";
 const BATCH_SIZE = 20;
 
-// ─── Country-aware unit conversion ───
-// Uzbekistan stores creatinine/bilirubin in µmol/L; India uses mg/dL (standard).
-// Risk engine always operates in mg/dL (standard SI).
 function normalizeForCountry(param: string, value: number, country: string): number {
-  if (country === "india") {
-    // India values are already in mg/dL (standard) — no conversion needed
-    return value;
-  }
-  // Uzbekistan (default): convert µmol/L → mg/dL
+  if (country === "india") return value;
   switch (param) {
     case "total_bilirubin":
     case "direct_bilirubin":
-      // µmol/L → mg/dL (÷ 17.1). Only convert if value looks like µmol/L (> 3 mg/dL boundary)
       return value > 3 ? Math.round((value / 17.1) * 100) / 100 : value;
     case "creatinine":
-      // µmol/L → mg/dL (÷ 88.4). Only convert if value looks like µmol/L
       return value > 10 ? Math.round((value / 88.4) * 100) / 100 : value;
     case "urea":
-      // mmol/L → mg/dL (× 6). Uzbekistan urea typically 2.5-8.2 mmol/L
       return value < 15 ? Math.round(value * 6 * 100) / 100 : value;
     case "hb":
       return value > 25 ? Math.round((value / 10) * 100) / 100 : value;
@@ -95,7 +85,6 @@ function daysSince(dateStr: string | null): number | null {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
 
-// ─── Time-dependent Tacrolimus windows ───
 function kidneyTacrolimusScore(tac: number, daysTx: number | null): { pts: number; target: string; guideline: string } {
   if (tac <= 0) return { pts: 0, target: "", guideline: "KDIGO 2009/2024" };
   const d = daysTx ?? 999;
@@ -203,7 +192,6 @@ serve(async (req) => {
       const snapshotsToInsert: any[] = [];
       const alertsToInsert: any[] = [];
 
-      // Track best creatinine for baseline-relative scoring
       let bestCreatinine: number | null = null;
 
       for (let i = 0; i < labs.length; i++) {
@@ -220,10 +208,8 @@ serve(async (req) => {
           lab.egfr = calculateEgfr(lab.creatinine, age, sex);
         }
 
-        // Update best creatinine from previous labs
         if (lab.creatinine != null && lab.creatinine > 0) {
           if (bestCreatinine === null || lab.creatinine < bestCreatinine) {
-            // Only use previous labs for baseline (not current)
             if (i > 0) bestCreatinine = Math.min(bestCreatinine ?? lab.creatinine, ...prevWindow.map(l => l.creatinine).filter((v): v is number => v != null && v > 0));
           }
         }
@@ -245,7 +231,6 @@ serve(async (req) => {
           bk_virus_load: lab.bk_virus_load, cmv_load: lab.cmv_load, dsa_mfi: lab.dsa_mfi,
         };
 
-        // ── Time-dependent Tacrolimus scoring ──
         const tac = lab.tacrolimus_level ?? 0;
         if (tac > 0) {
           const tacResult = patient.organ_type === "liver"
@@ -259,7 +244,6 @@ serve(async (req) => {
           }
         }
 
-        // ── Evaluate other thresholds (skip tacrolimus) ──
         for (const threshold of organThresholds) {
           if (threshold.parameter === "tacrolimus") continue;
           const value = labParamMap[threshold.parameter];
@@ -271,7 +255,6 @@ serve(async (req) => {
             explanations.push({ key: `${threshold.parameter}_${result.status}`, severity: result.status, message: result.message, value, threshold: result.status === "critical" ? (threshold.critical_min ?? threshold.critical_max) : (threshold.warning_min ?? threshold.warning_max), guideline: `${threshold.guideline_source} ${threshold.guideline_year}` });
           }
 
-          // ── Enhanced ALT/AST trend: >50% vs median of last 3 → +30 pts (AASLD) ──
           if ((threshold.parameter === "alt" || threshold.parameter === "ast") && patient.organ_type === "liver" && prevWindow.length > 0 && value > 0) {
             const prevValues = prevWindow
               .map(l => threshold.parameter === "alt" ? l.alt : l.ast)
@@ -321,7 +304,6 @@ serve(async (req) => {
           }
         }
 
-        // ── Baseline-relative creatinine for kidney (KDIGO 2009) ──
         if (patient.organ_type === "kidney" && lab.creatinine != null && lab.creatinine > 0 && bestCreatinine != null && bestCreatinine > 0) {
           if (lab.creatinine > bestCreatinine * 1.25) {
             score += 35;
@@ -331,7 +313,6 @@ serve(async (req) => {
           }
         }
 
-        // ── BK Virus (copies/ml) — KDIGO 2009/2024 ──
         if (patient.organ_type === "kidney") {
           const bk = lab.bk_virus_load ?? 0;
           if (bk > 10000) { score += 20; flags.push(`BK Virus high: ${bk} copies/ml`); explanations.push({ key: "bk_virus_high", severity: "critical", message: `BK Virus load ${bk} copies/ml — high risk of BK nephropathy (KDIGO 2009/2024)`, value: bk, guideline: "KDIGO 2009/2024" }); }
@@ -363,7 +344,6 @@ serve(async (req) => {
           algorithm_version: ALGORITHM_VERSION, created_at: lab.recorded_at,
         });
 
-        // Update best creatinine after processing
         if (lab.creatinine != null && lab.creatinine > 0) {
           if (bestCreatinine === null || lab.creatinine < bestCreatinine) {
             bestCreatinine = lab.creatinine;
