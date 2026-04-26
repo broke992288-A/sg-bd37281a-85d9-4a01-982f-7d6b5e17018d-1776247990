@@ -30,8 +30,19 @@ export async function triggerRiskRecalculation(
   if (offset != null) body.offset = offset;
   if (limit != null) body.limit = limit;
 
+  // Get the current session to ensure we send the user's token, not service role
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  if (!accessToken) {
+    throw new Error("No active session - please log in");
+  }
+
   const { data, error } = await supabase.functions.invoke("recalculate-risk", {
     body,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
 
   if (error) {
